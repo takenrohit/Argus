@@ -1,4 +1,4 @@
-import { Search, ChevronDown, Activity, Settings, User } from 'lucide-react';
+import { Search, Activity, Settings, ShieldAlert, MoreHorizontal } from 'lucide-react';
 import { Incident } from '../types';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
@@ -11,7 +11,6 @@ interface IncidentHistoryProps {
 
 export default function IncidentHistory({ incidents, onSelect }: IncidentHistoryProps) {
   const stats = useMemo(() => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const countsByDay = [0, 0, 0, 0, 0, 0, 0];
     
     const severityCounts = {
@@ -20,6 +19,8 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
       MONITOR: 0,
       SYSTEM: 0
     };
+
+    const criticalIncidentsList: Incident[] = [];
 
     incidents.forEach(inc => {
       // Parse DD/MM/YYYY, HH:MM:SS or similar
@@ -33,6 +34,10 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
       
       if (severityCounts.hasOwnProperty(inc.alertLevel)) {
         severityCounts[inc.alertLevel as keyof typeof severityCounts]++;
+      }
+
+      if (inc.alertLevel === 'CRITICAL') {
+        criticalIncidentsList.push(inc);
       }
     });
 
@@ -48,12 +53,17 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
       maxCount,
       criticalPercent,
       severityCounts,
+      criticalIncidents: criticalIncidentsList,
       total
     };
   }, [incidents]);
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto bg-brand-dark custom-scrollbar flex flex-col gap-6">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex-1 p-6 overflow-y-auto bg-brand-dark custom-scrollbar flex flex-col gap-6"
+    >
       
       {/* Top Header / Tabs */}
       <div className="flex items-center justify-between">
@@ -167,7 +177,7 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
                  <MoreHorizontal className="w-4 h-4 text-white/40" />
                </div>
                <div className="space-y-4 overflow-y-auto pr-1 flex-1 custom-scrollbar">
-                  {criticalIncidents.slice(0, 5).map((item) => (
+                  {stats.criticalIncidents.slice(0, 5).map((item) => (
                      <div key={item.id} className="flex items-start gap-3 cursor-pointer group" onClick={() => onSelect(item)}>
                         <div className="w-8 h-8 rounded-lg bg-brand-red/20 border border-brand-red/40 flex items-center justify-center shrink-0">
                            <Activity className="w-4 h-4 text-brand-red" />
@@ -179,7 +189,7 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
                         <div className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-brand-red shadow-[0_0_6px_rgba(255,107,61,0.65)]" />
                      </div>
                   ))}
-                  {!criticalIncidents.length && (
+                  {!stats.criticalIncidents.length && (
                      <div className="flex flex-col items-center justify-center h-full opacity-20 py-8">
                         <ShieldAlert className="w-8 h-8 mb-2" />
                         <p className="text-[11px] text-white uppercase tracking-widest font-bold">No Critical Alerts</p>
@@ -242,10 +252,7 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
             </div>
          </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-function MoreHorizontal(props: any) {
-  return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>;
-}

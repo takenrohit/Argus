@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import MapComponent from '../../components/MapComponent';
 import { Incident } from '../../types';
 import { motion } from 'motion/react';
