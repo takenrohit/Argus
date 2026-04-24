@@ -1,10 +1,10 @@
 venv/
 backend/.env
-<<<<<<< HEAD
+<<<<<<< ours
 _pycache_/
 =======
 __pycache__/
->>>>>>> 28f2f7e2318ecc0056ff053adca629ea3246a9d7
+>>>>>>> theirs
 *.py[cod]
 .runtime/
 .npm-cache/
