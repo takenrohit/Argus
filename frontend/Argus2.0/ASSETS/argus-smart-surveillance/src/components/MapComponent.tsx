@@ -22,9 +22,9 @@ const greenIcon = createCustomIcon('#e8e8e8');
 const searchIcon = createCustomIcon('#ff6b3d');
 const cameraIcon = L.divIcon({
   className: 'custom-div-icon',
-  html: `<div style="background-color:#4a90e2;width:10px;height:10px;border-radius:2px;border:2px solid white;box-shadow:0 0 10px #4a90e2;"></div>`,
-  iconSize: [10, 10],
-  iconAnchor: [5, 5],
+  html: `<div style="background-color:#ef4444;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 15px #ef4444, 0 0 30px rgba(239,68,68,0.4);"></div>`,
+  iconSize: [12, 12],
+  iconAnchor: [6, 6],
 });
 
 const cityCoordinates: Record<string, [number, number]> = {

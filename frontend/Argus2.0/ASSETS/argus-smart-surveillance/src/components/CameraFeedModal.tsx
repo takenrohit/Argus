@@ -101,7 +101,7 @@ export default function CameraFeedModal({ isOpen, onClose }: CameraFeedModalProp
                       }`}
                     >
                       <div className="flex items-center gap-2 mb-1">
-                        <div className={`w-2 h-2 rounded-full ${cam.status === 'active' ? 'bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.5)]' : 'bg-white/20'}`} />
+                        <div className={`w-2.5 h-2.5 rounded-full ${cam.status === 'active' ? 'bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8),0_0_24px_rgba(239,68,68,0.4)]' : 'bg-white/20'}`} />
                         <span className="text-xs font-mono text-white/60">{cam.id}</span>
                       </div>
                       <p className="text-sm text-white/85 font-medium truncate">{cam.name}</p>

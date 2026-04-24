@@ -221,10 +221,10 @@ class DistressEngine:
             if wrist_dist < 65:
                 score += 0.3
 
-        # Check: rapid movement indicates a physical altercation
+        # Check: rapid movement indicates a physical altercation (Lowered from 18 to 12)
         spd = person.speed()
-        if spd > 18:
-            score += min(0.4, (spd - 18) / 40.0 + 0.15)
+        if spd > 12:
+            score += min(0.4, (spd - 12) / 30.0 + 0.20)
 
         # Check: proximity fight — other people very close AND moving
         proximity_score = self._check_proximity_fight(person, all_persons)
@@ -253,7 +253,7 @@ class DistressEngine:
                 continue
             ox, oy = p.center()
             dist = np.sqrt((cx - ox)**2 + (cy - oy)**2)
-            if dist < 120:  # very close — within arm's reach
+            if dist < 180:  # increased from 120 to cover more frame area
                 close_count += 1
                 if p.speed() > 8 or target.speed() > 8:
                     close_and_moving += 1
@@ -349,7 +349,7 @@ class DistressEngine:
         confidence = max(weighted, max_flag * boost_mult)
         confidence = round(min(confidence, 1.0), 3)
 
-        if confidence >= 0.60:
+        if confidence >= 0.55: # lowered from 0.60
             level = "CRITICAL"
         elif confidence >= 0.50:
             level = "REVIEW"
