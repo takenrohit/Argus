@@ -1,0 +1,14 @@
+{
+  "id": "INC-1777062090-56",
+  "type": "Alert",
+  "alertLevel": "CRITICAL",
+  "confidence": 63,
+  "cameraId": "CAM-01",
+  "location": {
+    "lat": 28.5672,
+    "lng": 77.21,
+    "address": "AIIMS Delhi — Main Entrance"
+  },
+  "status": "reviewing",
+  "timestamp": "25/04/2026, 01:51:30"
+}

@@ -70,7 +70,7 @@ class DistressEngine:
             flags = {
                 "encirclement":      self._check_encirclement(person, persons),
                 "being_followed":    self._check_followed(person, persons),
-                "physical_struggle": self._check_struggle(person),
+                "physical_struggle": self._check_struggle(person, persons),
                 "panic_running":     self._check_panic_run(person),
                 "collapsed":         self._check_collapsed(person),
             }
@@ -171,16 +171,22 @@ class DistressEngine:
     #  SIGNATURE 3 — Physical Struggle
     # ─────────────────────────────────────────
 
-    def _check_struggle(self, person: TrackedPerson) -> float:
+    def _check_struggle(
+        self,
+        person: TrackedPerson,
+        all_persons: dict[int, TrackedPerson] | None = None,
+    ) -> float:
         """
-        Analyses MediaPipe keypoints for signs of physical struggle:
-        - Arms raised above shoulders (defensive posture)
-        - Wrists very close together (grappling)
-        - High movement speed
+        Detects physical struggle via:
+        - Wrists raised above shoulders (defensive / punching)
+        - Wrists close together (grappling)
+        - Rapid movement
+        - Multiple people in very close proximity with movement (fight)
         """
         kp = person.keypoints
         if not kp or len(kp) < 17:
-            return 0.0
+            # No pose data — fall back to proximity-only fight detection
+            return self._check_proximity_fight(person, all_persons)
 
         def get(idx):
             """Safe keypoint getter — returns (x, y, visibility)."""
@@ -220,7 +226,43 @@ class DistressEngine:
         if spd > 18:
             score += min(0.4, (spd - 18) / 40.0 + 0.15)
 
+        # Check: proximity fight — other people very close AND moving
+        proximity_score = self._check_proximity_fight(person, all_persons)
+        score = max(score, score * 0.6 + proximity_score * 0.4)
+
         return round(min(score, 1.0), 2)
+
+    def _check_proximity_fight(
+        self,
+        target: TrackedPerson,
+        all_persons: dict[int, TrackedPerson] | None = None,
+    ) -> float:
+        """
+        Detect fights by checking if multiple people are very close together
+        and at least one is moving. Works even without pose keypoints.
+        """
+        if not all_persons or len(all_persons) < 2:
+            return 0.0
+
+        cx, cy = target.center()
+        close_and_moving = 0
+        close_count = 0
+
+        for pid, p in all_persons.items():
+            if pid == target.track_id:
+                continue
+            ox, oy = p.center()
+            dist = np.sqrt((cx - ox)**2 + (cy - oy)**2)
+            if dist < 120:  # very close — within arm's reach
+                close_count += 1
+                if p.speed() > 8 or target.speed() > 8:
+                    close_and_moving += 1
+
+        if close_and_moving >= 1:
+            return min(0.85, 0.5 + close_and_moving * 0.2)
+        elif close_count >= 2:
+            return 0.4  # crowded but not necessarily fighting
+        return 0.0
 
     # ─────────────────────────────────────────
     #  SIGNATURE 4 — Panic Running
@@ -307,7 +349,7 @@ class DistressEngine:
         confidence = max(weighted, max_flag * boost_mult)
         confidence = round(min(confidence, 1.0), 3)
 
-        if confidence >= 0.70:
+        if confidence >= 0.60:
             level = "CRITICAL"
         elif confidence >= 0.50:
             level = "REVIEW"

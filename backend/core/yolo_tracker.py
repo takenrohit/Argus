@@ -28,7 +28,7 @@ import time
 # ─────────────────────────────────────────────
 
 MODEL_PATH        = "yolov8n.pt"   # downloads automatically on first run (~6MB)
-CONFIDENCE        = 0.5            # minimum detection confidence
+CONFIDENCE        = 0.3            # minimum detection confidence (lower for dark CCTV)
 MAX_TRACK_HISTORY = 60             # how many past positions to remember per person
 
 

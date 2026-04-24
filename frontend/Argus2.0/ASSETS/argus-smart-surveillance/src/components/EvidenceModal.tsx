@@ -178,27 +178,62 @@ export default function EvidenceModal({ incident, onClose, onAction }: EvidenceM
                
                {/* File Uploads */}
                <div className="glass-panel p-5 space-y-3">
-                  <div className="flex items-center gap-3 bg-white/5 p-3 rounded-lg border border-white/5 hover:border-white/10 transition-colors">
+                  <button
+                    onClick={() => {
+                      const blob = new Blob([JSON.stringify({
+                        id: incident.id,
+                        type: incident.type,
+                        alertLevel: incident.alertLevel,
+                        confidence: incident.confidence,
+                        cameraId: incident.cameraId,
+                        location: incident.location,
+                        status: incident.status,
+                        timestamp: incident.timestamp,
+                        description: incident.description,
+                      }, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${incident.id}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="w-full flex items-center gap-3 bg-white/5 p-3 rounded-lg border border-white/5 hover:border-white/20 transition-colors cursor-pointer"
+                  >
                      <FileText className="w-5 h-5 text-white/60" />
-                     <div className="flex-1">
+                     <div className="flex-1 text-left">
                         <p className="text-xs font-medium text-white/90">{incident.id}.json</p>
                         <p className="text-[10px] text-white/40 font-mono">Structured event payload</p>
                      </div>
                      <Download className="w-4 h-4 text-brand-green" />
-                  </div>
+                  </button>
                   
-                  <div className="flex items-center gap-3 bg-white/5 p-3 rounded-lg border border-white/5 hover:border-white/10 transition-colors">
-                     <FileText className="w-5 h-5 text-white/60" />
-                     <div className="flex-1">
+                  <button
+                    onClick={() => {
+                      if (!incident.evidenceUrl) return;
+                      const a = document.createElement('a');
+                      a.href = incident.evidenceUrl;
+                      a.download = `${incident.cameraId}_${incident.id}.jpg`;
+                      a.click();
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-3 bg-white/5 p-3 rounded-lg border border-white/5 transition-colors",
+                      incident.evidenceUrl ? "hover:border-white/20 cursor-pointer" : "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                     <FileCheck className="w-5 h-5 text-white/60" />
+                     <div className="flex-1 text-left">
                         <p className="text-xs font-medium text-white/90">{incident.cameraId}_snapshot.jpg</p>
-                        <p className="text-[10px] text-white/40 font-mono">{incident.evidenceUrl ? 'Preview attached' : 'Frame unavailable'}</p>
+                        <p className="text-[10px] text-white/40 font-mono">{incident.evidenceUrl ? 'Click to download' : 'Frame unavailable'}</p>
                      </div>
                      <Download className="w-4 h-4 text-brand-green" />
-                  </div>
-                  
-                  <button className="w-full py-2 rounded-lg border border-dashed border-white/20 text-xs text-white/50 hover:text-white/80 transition-colors mt-2">
-                     Upload Evidence
                   </button>
+                  
+                  {incident.evidenceUrl && (
+                    <div className="mt-2 rounded-lg overflow-hidden border border-white/10">
+                      <img src={incident.evidenceUrl} alt="Evidence frame" className="w-full h-auto" />
+                    </div>
+                  )}
                </div>
 
                {/* System Logs */}
