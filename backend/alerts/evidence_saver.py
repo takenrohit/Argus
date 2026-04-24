@@ -55,11 +55,11 @@ class EvidenceSaver:
             try:
                 from supabase import create_client
                 self._sb = create_client(SUPABASE_URL, SUPABASE_KEY)
-                print("[EvidenceSaver] Supabase Storage ready ✅")
+                print("[EvidenceSaver] Supabase Storage ready")
             except Exception as e:
-                print(f"[EvidenceSaver] Supabase init failed: {e} — using local storage.")
+                print(f"[EvidenceSaver] Supabase init failed: {e}; using local storage.")
         else:
-            print("[EvidenceSaver] No Supabase config — saving locally.")
+            print("[EvidenceSaver] No Supabase config; saving locally.")
 
     # ─────────────────────────────────────────
     #  MAIN SAVE METHOD
@@ -85,7 +85,7 @@ class EvidenceSaver:
         # Decode base64 → numpy frame
         frame = self._decode_b64(frame_b64)
         if frame is None:
-            print(f"[EvidenceSaver] ❌ Could not decode frame for {incident_id}")
+            print(f"[EvidenceSaver] Could not decode frame for {incident_id}")
             return ""
 
         filename = self._make_filename(incident_id, camera_id)
@@ -118,11 +118,11 @@ class EvidenceSaver:
                 jpeg_bytes,
                 filename,
             )
-            print(f"[EvidenceSaver] ✅ Uploaded to Supabase: {filename}")
+            print(f"[EvidenceSaver] Uploaded to Supabase: {filename}")
             return url
 
         except Exception as e:
-            print(f"[EvidenceSaver] ❌ Supabase upload failed: {e} — falling back to local.")
+            print(f"[EvidenceSaver] Supabase upload failed: {e}; falling back to local.")
             return ""
 
     def _supabase_upload_sync(self, jpeg_bytes: bytes, filename: str) -> str:
@@ -152,11 +152,11 @@ class EvidenceSaver:
             [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY]
         )
         if not success:
-            print(f"[EvidenceSaver] ❌ cv2.imwrite failed: {file_path}")
+            print(f"[EvidenceSaver] cv2.imwrite failed: {file_path}")
             return ""
 
         abs_path = os.path.abspath(file_path)
-        print(f"[EvidenceSaver] ✅ Saved locally: {abs_path}")
+        print(f"[EvidenceSaver] Saved locally: {abs_path}")
         return abs_path
 
     # ─────────────────────────────────────────

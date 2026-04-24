@@ -5,6 +5,14 @@ Ties together: YOLOTracker → MediaPipe Pose → DistressEngine
 Runs frame-by-frame and emits alerts via a callback.
 """
 
+import os
+from pathlib import Path
+
+RUNTIME_DIR = Path(__file__).resolve().parents[2] / ".runtime"
+RUNTIME_DIR.mkdir(exist_ok=True)
+os.environ.setdefault("MPLCONFIGDIR", str(RUNTIME_DIR / "matplotlib"))
+Path(os.environ["MPLCONFIGDIR"]).mkdir(exist_ok=True)
+
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -99,7 +107,7 @@ class VideoProcessor:
             raise RuntimeError(f"[VideoProcessor] Cannot open source: {self.source}")
 
         self.running = True
-        print(f"[VideoProcessor] Started — source: {self.source} | camera: {self.camera_id}")
+        print(f"[VideoProcessor] Started; source: {self.source} | camera: {self.camera_id}")
 
         try:
             while self.running:
@@ -112,7 +120,7 @@ class VideoProcessor:
                 annotated = await self._process_frame(frame, on_alert)
 
                 if show_preview:
-                    cv2.imshow(f"Argus — {self.camera_id}", annotated)
+                    cv2.imshow(f"Argus - {self.camera_id}", annotated)
                     if cv2.waitKey(1) & 0xFF == ord("q"):
                         break
 
@@ -129,7 +137,7 @@ class VideoProcessor:
             self.cap.release()
         cv2.destroyAllWindows()
         self._mp_pose.close()
-        print(f"[VideoProcessor] Stopped — {self.frame_count} frames processed.")
+        print(f"[VideoProcessor] Stopped; {self.frame_count} frames processed.")
 
     # ─────────────────────────────────────────
     #  CORE FRAME PIPELINE
@@ -284,7 +292,7 @@ class VideoProcessor:
         if critical > 0:
             cv2.rectangle(frame, (0, h - 44), (w, h), (0, 0, 180), -1)
             cv2.putText(frame,
-                        f"  CRITICAL ALERT — {critical} INCIDENT(S) DETECTED  |  Argus",
+                        f"  CRITICAL ALERT - {critical} INCIDENT(S) DETECTED  |  Argus",
                         (10, h - 14),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.62, (255, 255, 255), 2, cv2.LINE_AA)
 

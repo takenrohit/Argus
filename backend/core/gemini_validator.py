@@ -60,9 +60,9 @@ class GeminiValidator:
 
     def __init__(self):
         if not GEMINI_API_KEY:
-            print("[GeminiValidator] ⚠️  No API key — running in bypass mode (all confirmed).")
+            print("[GeminiValidator] No API key; running in bypass mode.")
         else:
-            print("[GeminiValidator] Ready ✅")
+            print("[GeminiValidator] Ready")
 
     async def validate(
         self,
@@ -84,12 +84,20 @@ class GeminiValidator:
             GeminiResult with confirmed, threat_level, description
         """
 
-        # If no API key — bypass and trust the distress engine
+        # If no API key, bypass and trust the distress engine.
         if not GEMINI_API_KEY:
             return GeminiResult(
                 confirmed=True,
                 threat_level="high" if alert_level == "CRITICAL" else "medium",
-                description="Gemini not configured — distress engine result accepted.",
+                description="Gemini not configured; distress engine result accepted.",
+                raw_response="",
+            )
+
+        if frame is None:
+            return GeminiResult(
+                confirmed=True,
+                threat_level="medium",
+                description="No frame provided; distress engine result accepted.",
                 raw_response="",
             )
 
@@ -100,7 +108,7 @@ class GeminiValidator:
             raw = await self._call_gemini(frame_b64, prompt)
             return self._parse_response(raw)
         except Exception as e:
-            print(f"[GeminiValidator] Error: {e} — defaulting to confirmed.")
+            print(f"[GeminiValidator] Error: {e}; defaulting to confirmed.")
             return GeminiResult(
                 confirmed=True,
                 threat_level="medium",

@@ -5,6 +5,16 @@ Handles all YOLOv8 person detection and tracking.
 Gives every person a persistent track_id across frames.
 """
 
+import os
+from pathlib import Path
+
+RUNTIME_DIR = Path(__file__).resolve().parents[2] / ".runtime"
+RUNTIME_DIR.mkdir(exist_ok=True)
+os.environ.setdefault("MPLCONFIGDIR", str(RUNTIME_DIR / "matplotlib"))
+os.environ.setdefault("YOLO_CONFIG_DIR", str(RUNTIME_DIR / "ultralytics"))
+Path(os.environ["MPLCONFIGDIR"]).mkdir(exist_ok=True)
+Path(os.environ["YOLO_CONFIG_DIR"]).mkdir(exist_ok=True)
+
 import cv2
 import numpy as np
 from ultralytics import YOLO
@@ -110,7 +120,7 @@ class YOLOTracker:
         self.model      = YOLO(model_path)
         self.confidence = confidence
         self.persons:   dict[int, TrackedPerson] = {}
-        print("[YOLOTracker] Ready ✅")
+        print("[YOLOTracker] Ready")
 
     def update(self, frame: np.ndarray) -> dict[int, TrackedPerson]:
         """

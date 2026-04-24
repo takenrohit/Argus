@@ -11,11 +11,14 @@ from pydantic import BaseModel
 
 from ..config import CAMERA_LOCATION, CAMERA_LAT, CAMERA_LNG
 from .websocket import manager
-from ..alerts.alert_manager import AlertManager
+from ..alerts.alert_manager import alert_manager
 
 
 router = APIRouter()
-alert_manager = AlertManager()
+
+
+def _active_incident_rows() -> list[dict]:
+    return [incident.to_dict() for incident in alert_manager.get_active()]
 
 
 # ─────────────────────────────────────────────
@@ -131,14 +134,15 @@ async def list_incidents(
     """
     sb = _get_supabase_client()
     if sb is None:
-        incidents = alert_manager.get_active_alerts()[offset:offset + limit]
+        rows = _active_incident_rows()
+        incidents = rows[offset:offset + limit]
         if level:
             incidents = [incident for incident in incidents if incident.get("alert_level") == level.upper()]
         if status:
             incidents = [incident for incident in incidents if incident.get("status") == status.lower()]
         return {
             "incidents": incidents,
-            "total": len(alert_manager.get_active_alerts()),
+            "total": len(rows),
             "limit": limit,
             "offset": offset,
             "note": "Using in-memory incident store",
@@ -172,9 +176,9 @@ async def get_incident(incident_id: str):
     """Fetch a single incident by ID."""
     sb = _get_supabase_client()
     if sb is None:
-        for incident in alert_manager.get_active_alerts():
-            if incident.get("id") == incident_id:
-                return incident
+        incident = alert_manager.get_incident(incident_id)
+        if incident:
+            return incident.to_dict()
         raise HTTPException(status_code=404, detail="Incident not found")
 
     try:
@@ -203,10 +207,10 @@ async def update_incident(incident_id: str, update: IncidentStatusUpdate):
 
     sb = _get_supabase_client()
     if sb is None:
-        for incident in alert_manager._active_alerts:
-            if incident.get("id") == incident_id:
-                incident["status"] = update.status
-                incident["updated_at"] = datetime.now(timezone.utc).isoformat()
+        incident = alert_manager.get_incident(incident_id)
+        if incident:
+            incident.status = update.status
+            incident.updated_at = datetime.now(timezone.utc).isoformat()
         await manager.broadcast_incident_update(incident_id, update.status)
         return {"status": "broadcast_only", "incident_id": incident_id}
 
@@ -229,9 +233,7 @@ async def delete_incident(incident_id: str):
     """Delete a false positive incident permanently."""
     sb = _get_supabase_client()
     if sb is None:
-        alert_manager._active_alerts = [
-            incident for incident in alert_manager._active_alerts if incident.get("id") != incident_id
-        ]
+        alert_manager._active.pop(incident_id, None)
         return {"status": "deleted", "incident_id": incident_id}
 
     try:
@@ -253,7 +255,7 @@ async def get_stats():
     """
     sb = _get_supabase_client()
     if sb is None:
-        rows = alert_manager.get_active_alerts()
+        rows = _active_incident_rows()
         return {
             "total": len(rows),
             "critical": sum(1 for r in rows if r.get("alert_level") == "CRITICAL"),

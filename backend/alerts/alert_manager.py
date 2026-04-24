@@ -55,7 +55,7 @@ class AlertManager:
         self.evidence = EvidenceSaver()
 
         # Supabase client — None if not configured
-        self._sb = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL else None
+        self._sb = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 
         # In-memory active incidents (fast lookup, resets on restart)
         self._active: dict[str, Incident] = {}
@@ -63,7 +63,7 @@ class AlertManager:
         # SMS throttle — track_id → last sent timestamp
         self._sms_last: dict[int, float] = {}
 
-        print("[AlertManager] Ready ✅")
+        print("[AlertManager] Ready")
 
     # ─────────────────────────────────────────
     #  MAIN HANDLE METHOD
@@ -94,7 +94,7 @@ class AlertManager:
             alert_level=    alert_level,
         )
         print(
-            f"[AlertManager] Gemini → confirmed={gemini_result.confirmed} "
+            f"[AlertManager] Gemini -> confirmed={gemini_result.confirmed} "
             f"| {gemini_result.threat_level} | {gemini_result.description}"
         )
 
@@ -173,13 +173,13 @@ class AlertManager:
     async def _store(self, incident: Incident):
         """Persist incident to Supabase. Silently skips if not configured."""
         if not self._sb:
-            print(f"[AlertManager] Supabase not configured — incident {incident.id} not persisted.")
+            print(f"[AlertManager] Supabase not configured; incident {incident.id} not persisted.")
             return
         try:
             self._sb.table("incidents").insert(incident.to_dict()).execute()
-            print(f"[AlertManager] ✅ Stored {incident.id}")
+            print(f"[AlertManager] Stored {incident.id}")
         except Exception as e:
-            print(f"[AlertManager] ❌ Supabase error: {e}")
+            print(f"[AlertManager] Supabase error: {e}")
 
     async def update_status(self, incident_id: str, status: str):
         """Update incident status — called by routes.py PATCH /incidents/{id}."""
@@ -196,7 +196,7 @@ class AlertManager:
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             }).eq("id", incident_id).execute()
         except Exception as e:
-            print(f"[AlertManager] ❌ Status update error: {e}")
+            print(f"[AlertManager] Status update error: {e}")
 
     # ─────────────────────────────────────────
     #  SMS — Fast2SMS
@@ -214,7 +214,7 @@ class AlertManager:
         self._sms_last[incident.track_id] = now
 
         if not FAST2SMS_KEY or not POLICE_PHONE:
-            print(f"[AlertManager] SMS not configured — would have alerted: {incident.id}")
+            print(f"[AlertManager] SMS not configured; would have alerted: {incident.id}")
             return
 
         ts      = datetime.now().strftime("%H:%M:%S")
@@ -242,11 +242,11 @@ class AlertManager:
                 )
                 data = resp.json()
                 if data.get("return"):
-                    print(f"[AlertManager] ✅ SMS sent to {numbers}")
+                    print(f"[AlertManager] SMS sent to {numbers}")
                 else:
-                    print(f"[AlertManager] ❌ SMS failed: {data}")
+                    print(f"[AlertManager] SMS failed: {data}")
         except Exception as e:
-            print(f"[AlertManager] ❌ SMS error: {e}")
+            print(f"[AlertManager] SMS error: {e}")
 
     # ─────────────────────────────────────────
     #  IN-MEMORY HELPERS
