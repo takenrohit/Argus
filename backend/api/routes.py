@@ -293,36 +293,44 @@ async def get_stats():
 
 
 # ─────────────────────────────────────────────
-#  CAMERAS
+#  CAMERAS  (uses the registry in backend/cameras.py)
 # ─────────────────────────────────────────────
 
-# In-memory camera registry (extend to DB later)
-_cameras: dict[str, dict] = {
-    "CAM-01": {
-        "camera_id": "CAM-01",
-        "location":  CAMERA_LOCATION,
-        "latitude":  CAMERA_LAT,
-        "longitude": CAMERA_LNG,
-        "status":    "active",
-        "registered_at": datetime.now(timezone.utc).isoformat(),
-    }
-}
+from ..cameras import list_cameras as _registry_list, get_camera as _registry_get
 
 @router.get("/cameras", tags=["Cameras"])
 async def list_cameras():
-    """List all registered cameras."""
-    return {"cameras": list(_cameras.values())}
+    """List all cameras (without exposing internal source paths)."""
+    return {"cameras": [c.to_public() for c in _registry_list()]}
 
 
-@router.post("/cameras", tags=["Cameras"])
-async def register_camera(cam: CameraRegister):
-    """Register a new camera (called during deployment setup)."""
-    _cameras[cam.camera_id] = {
-        "camera_id":     cam.camera_id,
-        "location":      cam.location,
-        "latitude":      cam.latitude,
-        "longitude":     cam.longitude,
-        "status":        "active",
-        "registered_at": datetime.now(timezone.utc).isoformat(),
-    }
-    return {"status": "registered", "camera_id": cam.camera_id}
+@router.get("/cameras/{camera_id}", tags=["Cameras"])
+async def get_camera_info(camera_id: str):
+    cam = _registry_get(camera_id)
+    if not cam:
+        raise HTTPException(status_code=404, detail="Camera not found")
+    return cam.to_public()
+
+
+# ─────────────────────────────────────────────
+#  DEMO SAFETY NET — manually fire a fake incident
+# ─────────────────────────────────────────────
+
+@router.post("/demo/trigger/{camera_id}", tags=["Demo"])
+async def trigger_demo_incident(camera_id: str, level: str = "CRITICAL"):
+    """If live detection misfires during the judge demo, hit this to force
+    a full alert cycle (Supabase write, WS broadcast, map pin, evidence modal)."""
+    cam = _registry_get(camera_id)
+    if not cam:
+        raise HTTPException(status_code=404, detail="Camera not found")
+    return await alert_manager.handle(
+        track_id=999,
+        alert_level=level.upper(),
+        confidence=0.92,
+        distress_flags={"physical_struggle": 0.9, "panic_running": 0.7},
+        camera_id=cam.id,
+        location=cam.location,
+        latitude=cam.latitude,
+        longitude=cam.longitude,
+        frame_b64=None,
+    )
