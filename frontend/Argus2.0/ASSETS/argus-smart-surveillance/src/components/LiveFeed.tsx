@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Activity, AlertTriangle, Swords } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { fetchClusters } from "../lib/api";
@@ -42,7 +42,9 @@ export default function LiveFeedGrid() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
       {cameras.map((cam) => (
-        <CameraTile key={cam.id} cam={cam} />
+        <Fragment key={cam.id}>
+          <CameraTile cam={cam} />
+        </Fragment>
       ))}
       <DemoTriggerButton />
     </div>

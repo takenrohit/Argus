@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { AlertTriangle, ShieldAlert, Bell, X } from "lucide-react";
 import { buildAlertsWebSocketUrl, normalizeIncident } from "../lib/api";
@@ -108,11 +108,12 @@ export default function AlertToaster() {
     <div className="fixed top-20 right-4 z-[300] flex flex-col gap-3 w-[360px] pointer-events-none">
       <AnimatePresence>
         {toasts.map(({ key, incident }) => (
-          <ToastCard
-            key={key}
-            incident={incident}
-            onClose={() => dismiss(key)}
-          />
+          <Fragment key={key}>
+            <ToastCard
+              incident={incident}
+              onClose={() => dismiss(key)}
+            />
+          </Fragment>
         ))}
       </AnimatePresence>
     </div>
