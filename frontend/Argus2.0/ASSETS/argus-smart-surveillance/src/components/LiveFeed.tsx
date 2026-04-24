@@ -1,59 +1,94 @@
-import { Camera, Maximize2, Activity } from 'lucide-react';
-import { CameraStream } from '../types';
-import { motion } from 'motion/react';
-import { cn } from '../lib/utils';
+import { useEffect, useState } from "react";
+import { Activity } from "lucide-react";
+import { motion } from "motion/react";
 
-interface LiveFeedGridProps {
-  streams: CameraStream[];
+interface CameraInfo {
+  id: string;
+  name: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+  status: string;
 }
 
-export default function LiveFeedGrid({ streams }: LiveFeedGridProps) {
+const API = import.meta.env.VITE_API_BASE_URL || "";
+
+export default function LiveFeedGrid() {
+  const [cameras, setCameras] = useState<CameraInfo[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch(`${API}/api/cameras`)
+      .then((r) => r.json())
+      .then((d) => setCameras(d.cameras || []))
+      .catch((e) => setError(e.message));
+  }, []);
+
+  if (error) {
+    return (
+      <div className="p-4 text-brand-red text-sm">
+        Cameras unreachable: {error}
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4">
-      {streams.map((stream) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+      {cameras.map((cam) => (
         <motion.div
-          key={stream.id}
+          key={cam.id}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative group aspect-video bg-white/5 rounded-xl border border-white/10 overflow-hidden ring-1 ring-white/5 hover:ring-white/20 transition-all"
+          className="relative group aspect-video bg-black rounded-xl border border-white/10 overflow-hidden"
         >
-          {/* Simulated Video Placeholder */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
-          <img 
-            src={stream.feedUrl} 
-            alt={stream.name}
-            className="w-full h-full object-cover opacity-60 mix-blend-luminosity group-hover:opacity-80 transition-opacity"
-            referrerPolicy="no-referrer"
+          {/* MJPEG stream — served directly by FastAPI */}
+          <img
+            src={`${API}/api/video/${cam.id}`}
+            alt={cam.name}
+            className="w-full h-full object-cover"
           />
 
-          {/* Overlay UI */}
+          {/* LIVE badge + camera ID */}
           <div className="absolute top-3 left-3 z-20 flex items-center gap-2">
-            <div className={cn(
-              "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5",
-              stream.status === 'tracking' ? "bg-brand-red text-white" : "bg-black/60 text-white/70"
-            )}>
-              {stream.status === 'tracking' && <Activity className="w-3 h-3 animate-pulse" />}
-              {stream.status}
+            <div className="px-2 py-0.5 rounded bg-brand-red/80 text-white text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <Activity className="w-3 h-3 animate-pulse" /> LIVE
             </div>
             <div className="px-2 py-0.5 rounded bg-black/60 text-white/70 text-[10px] font-mono border border-white/10">
-              HD:04
+              {cam.id}
             </div>
           </div>
 
-          <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-white truncate max-w-[140px]">{stream.name}</p>
-              <p className="text-[10px] text-white/50 font-mono uppercase tracking-tighter">{stream.location}</p>
-            </div>
-            <button className="p-1.5 rounded-lg bg-white/5 hover:bg-white/20 border border-white/10 text-white/40 hover:text-white transition-all opacity-0 group-hover:opacity-100">
-              <Maximize2 className="w-3.5 h-3.5" />
-            </button>
+          {/* Camera name + location */}
+          <div className="absolute bottom-3 left-3 right-3 z-20">
+            <p className="text-xs font-semibold text-white truncate">
+              {cam.name}
+            </p>
+            <p className="text-[10px] text-white/50 font-mono uppercase">
+              {cam.location}
+            </p>
           </div>
-
-          {/* Scanning Effect Overlay */}
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-brand-red/20 animate-[scan_3s_linear_infinite] shadow-[0_0_10px_rgba(15,176,181,0.5)] z-30" />
         </motion.div>
       ))}
+
+      <DemoTriggerButton />
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+//  DEMO SAFETY NET — inject a fake incident during judge demo
+// ─────────────────────────────────────────────
+
+function DemoTriggerButton() {
+  const fire = (cam: string) =>
+    fetch(`${API}/api/demo/trigger/${cam}`, { method: "POST" });
+
+  return (
+    <button
+      onClick={() => fire("CAM-01")}
+      className="fixed bottom-4 right-4 z-[200] px-3 py-2 rounded-lg bg-brand-red/80 text-white text-xs font-mono uppercase tracking-wider shadow-lg hover:bg-brand-red"
+    >
+      ▶ Inject Test Incident
+    </button>
   );
 }
