@@ -107,17 +107,41 @@ Argus/
 └── README.md
 
 
-🚀 How to Run (Backend)
+🚀 How to Run
 
+Backend
 
-1️⃣ Install Dependencies
-Bash
+1️⃣ Install backend dependencies
 
-pip install ultralytics opencv-python fastapi uvicorn
-2️⃣ Start Backend
-Bash
+`pip install -r backend/requirements.txt`
 
-uvicorn main:app --reload
+2️⃣ Start FastAPI from the repo root
+
+`uvicorn backend.main:app --reload`
+
+Frontend
+
+1️⃣ Install frontend dependencies
+
+`cd frontend/Argus2.0/ASSETS/argus-smart-surveillance && npm install`
+
+2️⃣ Start the Vite app during development
+
+`npm run dev`
+
+The Vite dev server now proxies `/api` and `/ws` to the FastAPI app on `http://127.0.0.1:8000`.
+
+Single-app build
+
+1️⃣ Build the frontend
+
+`cd frontend/Argus2.0/ASSETS/argus-smart-surveillance && npm run build`
+
+2️⃣ Start FastAPI again
+
+`uvicorn backend.main:app --reload`
+
+FastAPI will automatically serve the built frontend from the generated `dist/` folder.
 🎥 Running Video Detection
 The system supports:
 

@@ -1,0 +1,13 @@
+{
+  "name": "Argus Smart Surveillance",
+  "description": "High-fidelity real-time public safety dashboard for AI-powered surveillance tracking and incident management.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "Mapping",
+    "Real-time Tracking",
+    "AI Vision Integration"
+  ]
+}
