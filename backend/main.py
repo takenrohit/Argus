@@ -87,6 +87,38 @@ async def root_health_check():
 
 
 # ─────────────────────────────────────────────
+#  EVIDENCE — serve locally saved screenshots
+# ─────────────────────────────────────────────
+
+EVIDENCE_DIR = Path(__file__).resolve().parent.parent / "evidence"
+
+@app.get("/api/evidence/{filename}", tags=["Evidence"])
+async def serve_evidence(filename: str):
+    """Serve an evidence screenshot from the local evidence/ directory."""
+    file_path = (EVIDENCE_DIR / filename).resolve()
+    # Path traversal protection
+    try:
+        file_path.relative_to(EVIDENCE_DIR.resolve())
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Access denied")
+    if not file_path.is_file():
+        raise HTTPException(status_code=404, detail="Evidence file not found")
+    return FileResponse(file_path, media_type="image/jpeg")
+
+
+@app.get("/api/evidence", tags=["Evidence"])
+async def list_evidence():
+    """List all evidence files available locally."""
+    if not EVIDENCE_DIR.exists():
+        return {"files": []}
+    files = sorted(
+        [f.name for f in EVIDENCE_DIR.iterdir() if f.suffix in (".jpg", ".jpeg", ".png")],
+        reverse=True,
+    )
+    return {"files": files, "total": len(files)}
+
+
+# ─────────────────────────────────────────────
 #  FRONTEND SERVING (with path-traversal fix)
 # ─────────────────────────────────────────────
 

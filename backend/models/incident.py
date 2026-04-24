@@ -114,11 +114,9 @@ class Incident(BaseModel):
             "longitude":            self.longitude,
             "gemini_confirmed":     self.gemini_confirmed,
             "gemini_description":   self.gemini_description,
-            "gemini_threat_level":  self.gemini_threat_level,
             "screenshot_url":       self.screenshot_url,
             "status":               str(self.status),
             "created_at":           self.created_at,
-            "updated_at":           self.updated_at,
         }
 
     def to_ws_payload(self) -> dict:

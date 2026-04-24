@@ -1,7 +1,10 @@
 from dotenv import load_dotenv
+from pathlib import Path
 import os
 
-load_dotenv()
+# Explicitly load from project root (one level up from backend/)
+_env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(_env_path)
 
 SUPABASE_URL     = os.getenv("SUPABASE_URL")
 SUPABASE_KEY     = os.getenv("SUPABASE_KEY")
