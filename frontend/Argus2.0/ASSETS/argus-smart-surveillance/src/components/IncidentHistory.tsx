@@ -91,7 +91,7 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
                   <div className="relative w-[100px] h-[100px]">
                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                         <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
-                        <circle cx="50" cy="50" r="42" fill="none" stroke="#0fb0b5" strokeWidth="10" strokeDasharray="263" strokeDashoffset="144" strokeLinecap="round" className="drop-shadow-[0_0_8px_rgba(15,176,181,0.55)]" />
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#ff6b3d" strokeWidth="10" strokeDasharray="263" strokeDashoffset="144" strokeLinecap="round" className="drop-shadow-[0_0_8px_rgba(255,107,61,0.55)]" />
                      </svg>
                      <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <p className="text-[18px] font-bold text-white/90">45%</p>
