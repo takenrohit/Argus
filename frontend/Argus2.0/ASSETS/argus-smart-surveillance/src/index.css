@@ -68,3 +68,71 @@
   to { top: 100%; opacity: 0; }
 }
 
+/* ─── Light Mode ─── */
+html.light-mode {
+  --color-brand-dark: #f0f0f2;
+  --color-brand-surface: #ffffff;
+  --color-brand-surface-light: #f5f5f7;
+  --color-brand-border: rgba(0, 0, 0, 0.08);
+}
+
+html.light-mode body {
+  background: #f0f0f2;
+  color: #1a1a1a;
+}
+
+html.light-mode .glass-panel {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+html.light-mode .glass-card {
+  background: #ffffff;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Keep sidebar dark in light mode for contrast */
+html.light-mode aside.bg-black {
+  background: #0a0a0a;
+}
+
+/* Text adjustments */
+html.light-mode .text-white { color: #1a1a1a; }
+html.light-mode .text-white\/90 { color: rgba(26, 26, 26, 0.9); }
+html.light-mode .text-white\/80 { color: rgba(26, 26, 26, 0.8); }
+html.light-mode .text-white\/70 { color: rgba(26, 26, 26, 0.7); }
+html.light-mode .text-white\/60 { color: rgba(26, 26, 26, 0.6); }
+html.light-mode .text-white\/52 { color: rgba(26, 26, 26, 0.52); }
+html.light-mode .text-white\/48 { color: rgba(26, 26, 26, 0.48); }
+html.light-mode .text-white\/45 { color: rgba(26, 26, 26, 0.45); }
+html.light-mode .text-white\/42 { color: rgba(26, 26, 26, 0.42); }
+html.light-mode .text-white\/40 { color: rgba(26, 26, 26, 0.4); }
+html.light-mode .text-white\/30 { color: rgba(26, 26, 26, 0.3); }
+html.light-mode .text-white\/20 { color: rgba(26, 26, 26, 0.2); }
+
+/* Background tints */
+html.light-mode .bg-brand-dark { background: #f0f0f2; }
+html.light-mode .bg-brand-dark\/70 { background: rgba(240, 240, 242, 0.7); }
+
+/* Border adjustments */
+html.light-mode .border-white\/5 { border-color: rgba(0, 0, 0, 0.06); }
+html.light-mode .border-white\/10 { border-color: rgba(0, 0, 0, 0.08); }
+html.light-mode .border-white\/20 { border-color: rgba(0, 0, 0, 0.12); }
+
+/* Map background */
+html.light-mode .leaflet-container { background-color: #e8e8ec !important; }
+html.light-mode .leaflet-layer,
+html.light-mode .leaflet-control-zoom-in,
+html.light-mode .leaflet-control-zoom-out,
+html.light-mode .leaflet-control-attribution {
+  filter: none;
+}
+
+/* Scrollbar in light mode */
+html.light-mode .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+}
+html.light-mode .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.22);
+}

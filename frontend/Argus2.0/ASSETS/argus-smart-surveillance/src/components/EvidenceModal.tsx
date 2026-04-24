@@ -14,7 +14,7 @@ export default function EvidenceModal({ incident, onClose, onAction }: EvidenceM
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex">
+      <div className="fixed inset-0 z-[900] flex">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

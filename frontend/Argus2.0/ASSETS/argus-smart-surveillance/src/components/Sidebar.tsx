@@ -1,7 +1,7 @@
-import { Shield, LayoutDashboard, Database, Bell, Activity, FileText, Settings, HelpCircle, User, Moon, Camera } from 'lucide-react';
+import { Shield, LayoutDashboard, Database, Bell, Activity, FileText, Settings, HelpCircle, Info, Moon, Sun, Camera } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface SidebarProps {
   activeTab: string;
@@ -10,6 +10,29 @@ interface SidebarProps {
 
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('argus-theme');
+    if (saved === 'light') {
+      setIsDark(false);
+      document.documentElement.classList.add('light-mode');
+    }
+  }, []);
+
+  function toggleTheme() {
+    setIsDark((prev) => {
+      const next = !prev;
+      if (next) {
+        document.documentElement.classList.remove('light-mode');
+        localStorage.setItem('argus-theme', 'dark');
+      } else {
+        document.documentElement.classList.add('light-mode');
+        localStorage.setItem('argus-theme', 'light');
+      }
+      return next;
+    });
+  }
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -79,20 +102,29 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
       </nav>
 
       <div className="p-4 mt-auto flex flex-col items-center gap-4">
-        <button className={cn(
-          "flex items-center justify-center p-3 rounded-xl hover:bg-white/5 transition-colors text-white/40 hover:text-white",
-          isExpanded ? "w-full" : ""
-        )}>
-          <User className="w-5 h-5" />
-          {isExpanded && <span className="ml-3 text-sm font-medium">Profile</span>}
+        <button
+          onClick={() => setActiveTab('about')}
+          className={cn(
+            "flex items-center justify-center p-3 rounded-xl hover:bg-white/5 transition-colors",
+            activeTab === 'about' ? 'text-white bg-white/10' : 'text-white/40 hover:text-white',
+            isExpanded ? "w-full" : ""
+          )}
+          title={!isExpanded ? 'About' : undefined}
+        >
+          <Info className="w-5 h-5" />
+          {isExpanded && <span className="ml-3 text-sm font-medium">About</span>}
         </button>
         
-        <button className={cn(
-          "flex items-center justify-center p-3 rounded-xl hover:bg-white/5 transition-colors text-white/40 hover:text-white",
-          isExpanded ? "w-full" : ""
-        )}>
-          <Moon className="w-5 h-5" />
-          {isExpanded && <span className="ml-3 text-sm font-medium">Theme</span>}
+        <button
+          onClick={toggleTheme}
+          className={cn(
+            "flex items-center justify-center p-3 rounded-xl hover:bg-white/5 transition-colors text-white/40 hover:text-white",
+            isExpanded ? "w-full" : ""
+          )}
+          title={!isExpanded ? (isDark ? 'Light Mode' : 'Dark Mode') : undefined}
+        >
+          {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          {isExpanded && <span className="ml-3 text-sm font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
         </button>
       </div>
     </aside>

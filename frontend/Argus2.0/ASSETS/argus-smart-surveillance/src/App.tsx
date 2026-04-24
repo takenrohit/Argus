@@ -11,6 +11,7 @@ import MapPage from './app/map/page';
 import DevicesPage from './app/devices/page';
 import AlertsPage from './app/alerts/page';
 import HelpPage from './app/help/page';
+import AboutPage from './app/about/page';
 import HeroPage from './app/HeroPage';
 import LoadingPage from './app/LoadingPage';
 import type { BackendIncidentPayload, DashboardStats, Incident, IncidentSeverity, IncidentStatus } from './types';
@@ -272,6 +273,7 @@ function MainContent() {
               }
             />
             <Route path="/help" element={<HelpPage incidents={filteredIncidents} onSelectIncident={setSelectedIncident} />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>
