@@ -15,15 +15,15 @@ export default function HeroPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 1 }}
-      className="relative w-full h-screen overflow-hidden bg-brand-dark flex flex-col items-center justify-center font-sans"
+      className="relative w-full h-screen overflow-hidden bg-black flex flex-col items-center justify-center font-sans"
     >
       <ParticleBackground />
       
       {/* Dark overlay for contrast */}
-      <div className="absolute inset-0 z-10 bg-brand-dark/10" />
+      <div className="absolute inset-0 z-10 bg-black/20" />
       
       {/* Vignette / Grain overlay */}
-      <div className="absolute inset-0 z-10 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(18,18,20,0.8)_100%)] mix-blend-multiply pointer-events-none" />
+      <div className="absolute inset-0 z-10 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.82)_100%)] mix-blend-multiply pointer-events-none" />
 
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 z-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdHRoIGQ9Ik0wIDQwaDQwVDBIMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMCAwaDQwdjQwSDB6IiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wMykiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')] opacity-50 pointer-events-none" />
@@ -37,11 +37,6 @@ export default function HeroPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
         >
-          <img 
-            src="/bat-logo.jpeg" 
-            alt="Argus Logo" 
-            className="w-[201px] h-[201px] md:w-[269px] md:h-[269px] mx-auto mb-8 object-contain filter invert brightness-[2] contrast-[2] mix-blend-screen animate-pulse" 
-          />
           <h1 className="text-6xl md:text-8xl font-bold tracking-[0.2em] text-white uppercase font-mono drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] mb-4">
             Argus
           </h1>

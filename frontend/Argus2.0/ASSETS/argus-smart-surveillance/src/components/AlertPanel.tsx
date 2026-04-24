@@ -15,7 +15,7 @@ export default function AlertPanel({ criticalIncident }: AlertPanelProps) {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="absolute top-2 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-brand-red flex items-center gap-3 shadow-[0_0_20px_rgba(255,77,77,0.4)] pointer-events-none"
+            className="absolute top-2 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-brand-red flex items-center gap-3 shadow-[0_0_20px_rgba(15,176,181,0.4)] pointer-events-none"
           >
             <Terminal className="w-3.5 h-3.5 text-white" />
             <span className="text-[10px] font-bold uppercase tracking-wider text-white">Critical Alert: {criticalIncident.type} @ {criticalIncident.location.address}</span>

@@ -51,7 +51,7 @@ export default function LiveFeedGrid({ streams }: LiveFeedGridProps) {
           </div>
 
           {/* Scanning Effect Overlay */}
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-brand-red/20 animate-[scan_3s_linear_infinite] shadow-[0_0_10px_rgba(239,68,68,0.5)] z-30" />
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-brand-red/20 animate-[scan_3s_linear_infinite] shadow-[0_0_10px_rgba(15,176,181,0.5)] z-30" />
         </motion.div>
       ))}
     </div>

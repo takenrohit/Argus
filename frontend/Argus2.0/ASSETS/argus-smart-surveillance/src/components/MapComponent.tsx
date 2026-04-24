@@ -16,10 +16,10 @@ const createCustomIcon = (color: string) =>
     iconAnchor: [6, 6],
   });
 
-const redIcon = createCustomIcon('#35858e');
-const amberIcon = createCustomIcon('#7da78c');
-const greenIcon = createCustomIcon('#c2d099');
-const searchIcon = createCustomIcon('#e6eec9');
+const redIcon = createCustomIcon('#0fb0b5');
+const amberIcon = createCustomIcon('#e7e7e7');
+const greenIcon = createCustomIcon('#3b424b');
+const searchIcon = createCustomIcon('#0fb0b5');
 
 const cityCoordinates: Record<string, [number, number]> = {
   mumbai: [19.076, 72.8777],
@@ -214,10 +214,10 @@ export default function MapComponent({ incidents, onSelectIncident, showHeatmap,
                   pathOptions={{
                     fillColor:
                       incident.alertLevel === 'CRITICAL'
-                        ? '#35858e'
+                        ? '#0fb0b5'
                         : incident.alertLevel === 'REVIEW'
-                          ? '#7da78c'
-                          : '#c2d099',
+                          ? '#e7e7e7'
+                          : '#3b424b',
                     color: 'transparent',
                     fillOpacity: 0.18,
                   }}

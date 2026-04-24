@@ -14,7 +14,7 @@ export default function ThreatIndicator({ confidence, type }: ThreatIndicatorPro
     <div className={cn(
       "flex items-center gap-3 p-3 rounded-xl border animate-in fade-in slide-in-from-right-4 duration-500",
       isCritical 
-        ? "bg-brand-red/10 border-brand-red/50 text-brand-red shadow-[0_0_15px_rgba(239,68,68,0.2)]" 
+        ? "bg-brand-red/10 border-brand-red/50 text-brand-red shadow-[0_0_15px_rgba(15,176,181,0.24)]" 
         : isReview 
           ? "bg-brand-amber/10 border-brand-amber/50 text-brand-amber"
           : "bg-brand-green/10 border-brand-green/50 text-brand-green"

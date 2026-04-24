@@ -163,7 +163,7 @@ export default function TopBar({
         </button>
 
         {filtersOpen && (
-          <div className="absolute right-0 top-full mt-4 w-80 rounded-2xl border border-white/10 bg-[#17181c] shadow-2xl p-4 z-50">
+          <div className="absolute right-0 top-full mt-4 w-80 rounded-2xl border border-brand-border bg-brand-surface shadow-2xl p-4 z-50">
             <p className="text-xs uppercase tracking-[0.2em] text-white/40 mb-3">Severity</p>
             <div className="flex flex-wrap gap-2 mb-4">
               {severityOptions.map((severity) => {

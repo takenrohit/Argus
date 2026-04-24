@@ -91,7 +91,7 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
                   <div className="relative w-[100px] h-[100px]">
                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                         <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
-                        <circle cx="50" cy="50" r="42" fill="none" stroke="#35858e" strokeWidth="10" strokeDasharray="263" strokeDashoffset="144" strokeLinecap="round" className="drop-shadow-[0_0_8px_rgba(53,133,142,0.8)]" />
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#0fb0b5" strokeWidth="10" strokeDasharray="263" strokeDashoffset="144" strokeLinecap="round" className="drop-shadow-[0_0_8px_rgba(15,176,181,0.55)]" />
                      </svg>
                      <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <p className="text-[18px] font-bold text-white/90">45%</p>
@@ -130,7 +130,7 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
                            <p className="text-[12px] text-white/90 font-medium truncate group-hover:text-white transition-colors">{item.type}</p>
                            <p className="text-[11px] text-white/40 truncate">{item.location.address}</p>
                         </div>
-                        <div className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-brand-red shadow-[0_0_6px_rgba(255,77,79,0.8)]" />
+                        <div className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-brand-red shadow-[0_0_6px_rgba(15,176,181,0.65)]" />
                      </div>
                   ))}
                   {!criticalIncidents.length && (

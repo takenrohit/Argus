@@ -21,7 +21,7 @@ export default function MapPage({ incidents, onSelectIncident, searchQuery }: Ma
       exit={{ opacity: 0 }}
       className="h-full relative"
     >
-      <div className="absolute top-6 left-6 z-[1000] p-4 bg-brand-dark/90 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl w-64 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)]">
+      <div className="absolute top-6 left-6 z-[1000] p-4 bg-brand-dark/90 backdrop-blur-md border border-brand-border rounded-2xl shadow-2xl w-64 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)]">
          <div className="flex items-center justify-between mb-4">
            <h3 className="font-bold text-sm tracking-tight">Geospatial Overlay</h3>
            <MapIcon className="w-4 h-4 text-white/30" />

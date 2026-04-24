@@ -51,7 +51,7 @@ export default function EvidenceModal({ incident, onClose, onAction }: EvidenceM
                <div className="glass-panel p-5 space-y-5">
                   <div className="flex items-center justify-between">
                      <p className="text-[11px] text-white/60">Incident ID</p>
-                     <div className="w-4 h-4 rounded-[3px] bg-brand-green shadow-[0_0_8px_rgba(46,204,113,0.5)]" />
+                     <div className="w-4 h-4 rounded-[3px] bg-brand-green shadow-[0_0_8px_rgba(231,231,231,0.22)]" />
                   </div>
                   
                   <div>
@@ -90,7 +90,7 @@ export default function EvidenceModal({ incident, onClose, onAction }: EvidenceM
                      </p>
                      <div className="flex gap-3">
                         <button className="flex-1 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-white/60 hover:text-white transition-colors">{incident.alertLevel}</button>
-                        <button className="flex-1 py-1.5 rounded-lg bg-brand-amber text-black text-xs font-medium shadow-[0_0_15px_rgba(255,170,0,0.3)]">{incident.status}</button>
+                        <button className="flex-1 py-1.5 rounded-lg bg-brand-amber text-black text-xs font-medium shadow-[0_0_15px_rgba(231,231,231,0.24)]">{incident.status}</button>
                      </div>
                   </div>
                </div>
@@ -157,9 +157,9 @@ export default function EvidenceModal({ incident, onClose, onAction }: EvidenceM
                         <MoreHorizontal className="w-4 h-4 text-white/40" />
                      </div>
                      <div className="flex gap-3">
-                        <button className="flex-1 py-1.5 rounded-lg bg-brand-red text-white text-xs font-medium shadow-[0_0_15px_rgba(255,77,79,0.3)]">{incident.alertLevel}</button>
+                        <button className="flex-1 py-1.5 rounded-lg bg-brand-red text-white text-xs font-medium shadow-[0_0_15px_rgba(15,176,181,0.3)]">{incident.alertLevel}</button>
                         <button className="flex-1 py-1.5 rounded-lg bg-brand-amber text-black text-xs font-medium">{incident.status}</button>
-                        <button className="flex-1 py-1.5 rounded-lg bg-brand-green text-black text-xs font-medium">{incident.cameraId}</button>
+                        <button className="flex-1 py-1.5 rounded-lg bg-brand-green text-white text-xs font-medium">{incident.cameraId}</button>
                      </div>
                   </div>
                   
@@ -167,7 +167,7 @@ export default function EvidenceModal({ incident, onClose, onAction }: EvidenceM
                   <div className="flex gap-3 mt-auto pt-4">
                      <button onClick={onClose} className="px-5 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-white/60 hover:text-white">Cancel</button>
                      <button onClick={() => onAction(incident.id, 'dismiss')} className="px-5 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-white/60 hover:text-white">Dismiss</button>
-                     <button onClick={() => onAction(incident.id, 'dispatch')} className="flex-1 py-2 rounded-lg bg-brand-green text-black text-xs font-bold shadow-[0_0_15px_rgba(46,204,113,0.3)]">Acknowledge</button>
+                     <button onClick={() => onAction(incident.id, 'dispatch')} className="flex-1 py-2 rounded-lg bg-brand-green text-white text-xs font-bold shadow-[0_0_15px_rgba(231,231,231,0.16)]">Acknowledge</button>
                   </div>
                </div>
             </div>
@@ -223,18 +223,18 @@ export default function EvidenceModal({ incident, onClose, onAction }: EvidenceM
                   <div className="relative flex items-center justify-between px-2">
                      <div className="absolute left-2 right-2 top-1/2 -translate-y-1/2 h-[2px] bg-white/10" />
                      <div className="relative z-10 flex flex-col items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-brand-red shadow-[0_0_8px_rgba(255,77,79,0.8)]" />
+                        <div className="w-3 h-3 rounded-full bg-brand-red shadow-[0_0_8px_rgba(15,176,181,0.65)]" />
                         <span className="text-[9px] text-white/40">14:36</span>
                      </div>
                      <div className="relative z-10 flex flex-col items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-brand-red shadow-[0_0_8px_rgba(255,77,79,0.8)]" />
+                        <div className="w-3 h-3 rounded-full bg-brand-red shadow-[0_0_8px_rgba(15,176,181,0.65)]" />
                         <span className="text-[9px] text-brand-red font-bold">14:37</span>
                      </div>
                      <div className="relative z-10 flex flex-col items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-brand-green shadow-[0_0_8px_rgba(46,204,113,0.8)]" />
+                        <div className="w-3 h-3 rounded-full bg-brand-green shadow-[0_0_8px_rgba(231,231,231,0.2)]" />
                      </div>
                      <div className="relative z-10 flex flex-col items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-brand-green shadow-[0_0_8px_rgba(46,204,113,0.8)]" />
+                        <div className="w-3 h-3 rounded-full bg-brand-green shadow-[0_0_8px_rgba(231,231,231,0.2)]" />
                      </div>
                   </div>
                </div>
