@@ -218,7 +218,7 @@ function MainContent() {
           onToggleStatus={handleToggleStatus}
         />
 
-        {(backendNote || criticalAlert || stats) && (
+        {location.pathname !== '/dashboard' && (backendNote || criticalAlert || stats) && (
           <div className="px-6 py-3 border-b border-white/5 bg-brand-dark/70 text-xs text-white/60 flex flex-wrap items-center gap-4">
             {backendNote && <span>{backendNote}</span>}
             {stats && (

@@ -16,10 +16,10 @@ const createCustomIcon = (color: string) =>
     iconAnchor: [6, 6],
   });
 
-const redIcon = createCustomIcon('#0fb0b5');
-const amberIcon = createCustomIcon('#e7e7e7');
-const greenIcon = createCustomIcon('#3b424b');
-const searchIcon = createCustomIcon('#0fb0b5');
+const redIcon = createCustomIcon('#ff6b3d');
+const amberIcon = createCustomIcon('#ffb36b');
+const greenIcon = createCustomIcon('#e8e8e8');
+const searchIcon = createCustomIcon('#ff6b3d');
 
 const cityCoordinates: Record<string, [number, number]> = {
   mumbai: [19.076, 72.8777],
@@ -122,7 +122,7 @@ function MapViewport({
     );
 
     if (!valid.length) {
-      map.setView([28.6139, 77.209], 12);
+      map.setView([12.9716, 77.5946], 11);
       return;
     }
 
@@ -144,7 +144,7 @@ export default function MapComponent({ incidents, onSelectIncident, showHeatmap,
     const firstValid = incidents.find(
       (incident) => !(incident.location.lat === 0 && incident.location.lng === 0)
     );
-    return firstValid ? [firstValid.location.lat, firstValid.location.lng] : [28.6139, 77.209];
+    return firstValid ? [firstValid.location.lat, firstValid.location.lng] : [12.9716, 77.5946];
   }, [incidents]);
 
   return (
@@ -152,7 +152,7 @@ export default function MapComponent({ incidents, onSelectIncident, showHeatmap,
       <MapContainer center={center} zoom={13} scrollWheelZoom className="w-full h-full" zoomControl={false}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
         <MapViewport incidents={incidents} searchQuery={searchQuery} onSearchResult={setSearchResult} />
 
@@ -214,10 +214,10 @@ export default function MapComponent({ incidents, onSelectIncident, showHeatmap,
                   pathOptions={{
                     fillColor:
                       incident.alertLevel === 'CRITICAL'
-                        ? '#0fb0b5'
+                        ? '#ff6b3d'
                         : incident.alertLevel === 'REVIEW'
-                          ? '#e7e7e7'
-                          : '#3b424b',
+                          ? '#ffb36b'
+                          : '#e8e8e8',
                     color: 'transparent',
                     fillOpacity: 0.18,
                   }}

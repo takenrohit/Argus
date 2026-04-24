@@ -99,19 +99,19 @@ export default function TopBar({
   }, [filtersOpen, onToggleFilters]);
 
   return (
-    <header className="h-16 border-b border-brand-border/50 bg-brand-dark/80 backdrop-blur-md flex items-center justify-between px-6 z-40 sticky top-0 gap-6">
+    <header className="h-16 bg-black/72 backdrop-blur-xl flex items-center justify-between px-7 z-40 sticky top-0 gap-6 shadow-[0_18px_40px_rgba(0,0,0,0.28)]">
       <div className="flex items-center min-w-[220px]">
         {isDashboard ? (
-          <div className="flex bg-white/5 rounded-lg p-1">
+          <div className="flex items-center gap-8">
             {dashboardTabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => handleDashboardTabChange(tab.key)}
                 className={cn(
-                  'px-6 py-1.5 rounded-md text-sm font-medium transition-all',
+                  'text-sm font-medium transition-all',
                   activeDashboardTab === tab.key
-                    ? 'bg-white/10 text-white shadow-sm'
-                    : 'text-white/40 hover:text-white/70'
+                    ? 'text-white'
+                    : 'text-white/42 hover:text-white/72'
                 )}
               >
                 {tab.label}
@@ -133,7 +133,7 @@ export default function TopBar({
           value={searchQuery}
           onChange={(event) => onSearchChange(event.target.value)}
           placeholder="Search by location, camera ID, or incident type"
-          className="w-full bg-white/5 border border-white/5 rounded-xl py-2 pl-11 pr-16 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-brand-blue/50 focus:border-brand-blue/50 transition-all"
+          className="w-full bg-white/[0.08] rounded-xl py-2.5 pl-11 pr-16 text-sm text-white placeholder:text-white/32 focus:outline-none focus:ring-1 focus:ring-brand-red/60 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_14px_32px_rgba(0,0,0,0.22)]"
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-white/30 text-xs font-mono">
           <Command className="w-3 h-3" />
@@ -153,7 +153,7 @@ export default function TopBar({
           <span>Filters</span>
         </button>
 
-        <button onClick={onClearAll} className="text-sm text-brand-amber font-medium hover:text-brand-amber/80 transition-colors">
+        <button onClick={onClearAll} className="text-sm text-white font-medium hover:text-brand-red transition-colors">
           Clear all
         </button>
 
@@ -163,7 +163,7 @@ export default function TopBar({
         </button>
 
         {filtersOpen && (
-          <div className="absolute right-0 top-full mt-4 w-80 rounded-2xl border border-brand-border bg-brand-surface shadow-2xl p-4 z-50">
+          <div className="absolute right-0 top-full mt-4 w-80 rounded-2xl bg-brand-surface shadow-2xl p-4 z-50">
             <p className="text-xs uppercase tracking-[0.2em] text-white/40 mb-3">Severity</p>
             <div className="flex flex-wrap gap-2 mb-4">
               {severityOptions.map((severity) => {
