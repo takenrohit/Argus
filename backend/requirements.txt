@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+ultralytics
+opencv-python
+pydantic
+python-multipart
+google-generativeai
+python-dotenv
+supabase

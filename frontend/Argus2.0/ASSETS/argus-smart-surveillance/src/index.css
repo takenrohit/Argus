@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-brand-red: #ff6b3d;
+  --color-brand-amber: #ffb36b;
+  --color-brand-green: #e8e8e8;
+  --color-brand-blue: #ff6b3d;
+  --color-brand-dark: #070808;
+  --color-brand-surface: #161616;
+  --color-brand-surface-light: #242424;
+  --color-brand-border: rgba(255, 255, 255, 0.08);
+}
+
+@layer base {
+  body {
+    @apply bg-brand-dark text-white font-sans antialiased selection:bg-brand-red/30;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-brand-surface rounded-[20px] shadow-[18px_18px_44px_rgba(0,0,0,0.42),-10px_-10px_30px_rgba(255,255,255,0.025)];
+  }
+  
+  .glass-panel {
+    @apply bg-brand-surface/92 backdrop-blur-md rounded-2xl shadow-[18px_18px_44px_rgba(0,0,0,0.42),-10px_-10px_30px_rgba(255,255,255,0.025)];
+  }
+  
+  .glow-red { @apply shadow-[0_0_18px_rgba(255,107,61,0.34)]; }
+  .glow-green { @apply shadow-[0_0_15px_rgba(232,232,232,0.16)]; }
+  .glow-amber { @apply shadow-[0_0_18px_rgba(255,179,107,0.24)]; }
+  .glow-blue { @apply shadow-[0_0_18px_rgba(255,107,61,0.34)]; }
+}
+
+.leaflet-container {
+  @apply w-full h-full overflow-hidden;
+  background-color: #070808 !important;
+}
+
+.leaflet-layer,
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out,
+.leaflet-control-attribution {
+  filter: sepia(0.3) saturate(1.35) hue-rotate(330deg) brightness(0.78) contrast(1.18);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+}
+
+@keyframes scan {
+  from { top: 0%; opacity: 0; }
+  50% { opacity: 1; }
+  to { top: 100%; opacity: 0; }
+}
+
