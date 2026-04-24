@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from ..config import CAMERA_LOCATION, CAMERA_LAT, CAMERA_LNG
 from .websocket import manager
 from ..alerts.alert_manager import alert_manager
+from ..runner import get_processor                              # NEW
 
 
 router = APIRouter()
@@ -310,6 +311,30 @@ async def get_camera_info(camera_id: str):
     if not cam:
         raise HTTPException(status_code=404, detail="Camera not found")
     return cam.to_public()
+
+
+# ─────────────────────────────────────────────
+#  FIGHT CLUSTERS  (NEW — frame-level fight detector output)
+# ─────────────────────────────────────────────
+
+@router.get("/clusters/{camera_id}", tags=["Cameras"])
+async def get_clusters(camera_id: str):
+    """
+    Latest fight clusters detected for one camera.
+
+    Returned per cluster:
+        bbox          (x1, y1, x2, y2)  — region on the frame
+        person_ids    list of TrackedPerson IDs in the cluster
+        body_count    number of bodies in the cluster
+        avg_speed     average pixel-speed of bodies
+        motion_energy fraction of cluster region that is moving (0..1)
+        intensity     final smoothed score (0..1)
+        alert_level   NONE | MONITOR | REVIEW | CRITICAL
+    """
+    proc = get_processor(camera_id)
+    if proc is None:
+        raise HTTPException(status_code=404, detail=f"Unknown camera: {camera_id}")
+    return {"camera_id": camera_id, "clusters": proc.latest_clusters()}
 
 
 # ─────────────────────────────────────────────

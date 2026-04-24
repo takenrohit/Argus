@@ -59,3 +59,24 @@ export interface BackendIncidentPayload {
   description?: string;
   frame_b64?: string;
 }
+// ─────────────────────────────────────────────
+//  FIGHT CLUSTERS  (new — frame-level fight detector)
+// ─────────────────────────────────────────────
+
+export type ClusterAlertLevel = 'CRITICAL' | 'REVIEW' | 'MONITOR' | 'NONE';
+
+export interface FightCluster {
+  bbox:           [number, number, number, number]; // [x1, y1, x2, y2] in video px
+  person_ids:     number[];
+  body_count:     number;
+  avg_speed:      number;
+  motion_energy:  number;
+  intensity:      number;
+  alert_level:    ClusterAlertLevel;
+  source?:        'body' | 'motion-only';
+}
+
+export interface ClustersResponse {
+  camera_id: string;
+  clusters:  FightCluster[];
+}
