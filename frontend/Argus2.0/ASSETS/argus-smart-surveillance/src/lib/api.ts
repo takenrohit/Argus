@@ -1,4 +1,4 @@
-import type { BackendIncidentPayload, DashboardStats, Incident, IncidentSeverity } from '../types';
+import type { BackendIncidentPayload, ClustersResponse, DashboardStats, Incident, IncidentSeverity } from '../types';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const WS_BASE_URL  = (import.meta.env.VITE_WS_BASE_URL  || '').replace(/\/$/, '');
@@ -20,7 +20,7 @@ function formatIncidentType(rawType?: string) {
     .join(' ');
 }
 
-export function toUiStatus(sourceStatus: string | undefined, severity: IncidentSeverity): Incident['status'] {
+function toUiStatus(sourceStatus: string | undefined, severity: IncidentSeverity): Incident['status'] {
   switch (sourceStatus) {
     case 'resolved':       return 'resolved';
     case 'false_positive': return 'dismissed';
@@ -97,7 +97,7 @@ export async function updateIncidentStatus(
 }
 
 // ─────────────────────────────────────────────
-//  WEBSOCKET URL BUILDER  ← fixed
+//  WEBSOCKET URL BUILDER
 // ─────────────────────────────────────────────
 
 export function buildAlertsWebSocketUrl(): string {
@@ -111,4 +111,16 @@ export function buildAlertsWebSocketUrl(): string {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const host     = window.location.host;   // e.g. localhost:3000 in dev
   return `${protocol}//${host}/ws/alerts`;
+}
+
+// ─────────────────────────────────────────────
+//  FIGHT CLUSTERS
+// ─────────────────────────────────────────────
+
+export async function fetchClusters(cameraId: string): Promise<ClustersResponse> {
+  const response = await fetch(getApiUrl(`/api/clusters/${cameraId}`));
+  if (!response.ok) {
+    throw new Error(`Failed to fetch clusters for ${cameraId} (${response.status})`);
+  }
+  return response.json();
 }

@@ -1,56 +1,72 @@
-"""ARGUS — alerts/alert_manager.py
-Central alert pipeline.
+"""
+ARGUS — alerts/alert_manager.py
+Central alert pipeline. Called by routes.py POST /alert.
 
 For every incoming distress event:
-    1. Confidence threshold gate
-    2. Gemini Vision visual confirmation
-    3. Evidence saver (screenshot)
-    4. Supabase persistence (non-blocking via to_thread)
-    5. SMS to police if CRITICAL + Gemini-confirmed
-    6. WebSocket broadcast to dashboard clients
+    1. Gemini Vision  — visually confirm the threat
+    2. Evidence Saver — store screenshot
+    3. Supabase       — persist the incident record
+    4. SMS            — notify police if CRITICAL
+    5. WebSocket      — broadcast to all dashboard clients
 """
 
 import time
+import httpx
 import asyncio
-import base64
 from datetime import datetime, timezone
 from typing import Optional
 
-import httpx
-import numpy as np
-import cv2
+from supabase import create_client
 
 from ..config import (
+    SUPABASE_URL, SUPABASE_KEY,
     FAST2SMS_KEY, POLICE_PHONE,
-    ALERT_CONFIDENCE_THRESHOLD,
-    is_supabase_configured, is_sms_configured,
+    CAMERA_LOCATION,
 )
-from ..db import get_supabase
 from ..core.gemini_validator import GeminiValidator, GeminiResult
 from ..alerts.evidence_saver import EvidenceSaver
 from ..models.incident import Incident
 from ..api.websocket import manager as ws_manager
 
 
-SMS_COOLDOWN_SEC = 60     # min seconds between SMS to the same person
+# ─────────────────────────────────────────────
+#  CONFIG
+# ─────────────────────────────────────────────
 
+SMS_COOLDOWN_SEC = 60    # minimum seconds between SMS for the same person
+
+
+# ─────────────────────────────────────────────
+#  ALERT MANAGER
+# ─────────────────────────────────────────────
 
 class AlertManager:
-    """Orchestrates the full alert pipeline."""
+    """
+    Orchestrates the full alert pipeline.
+
+    Usage (from routes.py):
+        result = await alert_manager.handle(
+            track_id=1, alert_level="CRITICAL", confidence=0.92, ...
+        )
+    """
 
     def __init__(self):
         self.gemini   = GeminiValidator()
         self.evidence = EvidenceSaver()
-        self._sb      = get_supabase()
 
+        # Supabase client — None if not configured
+        self._sb = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
+
+        # In-memory active incidents (fast lookup, resets on restart)
         self._active: dict[str, Incident] = {}
-        # Throttle SMS by (camera_id, location) so re-tracked persons can't spam
-        self._sms_last: dict[tuple[str, str], float] = {}
+
+        # SMS throttle — track_id → last sent timestamp
+        self._sms_last: dict[int, float] = {}
 
         print("[AlertManager] Ready")
 
     # ─────────────────────────────────────────
-    #  PUBLIC API
+    #  MAIN HANDLE METHOD
     # ─────────────────────────────────────────
 
     async def handle(
@@ -63,26 +79,16 @@ class AlertManager:
         location:       str,
         latitude:       float,
         longitude:      float,
-        frame:          Optional[np.ndarray] = None,
         frame_b64:      Optional[str] = None,
     ) -> dict:
-        """Run the full pipeline for one distress event.
-
-        Pass `frame` (numpy BGR) when available — saves a base64 round-trip.
-        Falls back to decoding `frame_b64` if only that is provided.
         """
-        # ── Threshold gate (was previously only enforced in /api/alert) ──
-        if confidence < ALERT_CONFIDENCE_THRESHOLD:
-            return {"status": "ignored", "reason": "below threshold"}
-
-        # Get a numpy frame for Gemini once — and only once
-        np_frame = frame if frame is not None else (
-            self._b64_to_frame(frame_b64) if frame_b64 else None
-        )
+        Full pipeline for one distress event.
+        Returns a result dict sent back to the caller (routes.py).
+        """
 
         # ── Step 1: Gemini Vision confirmation ──
         gemini_result: GeminiResult = await self.gemini.validate(
-            frame=          np_frame,
+            frame=          self._b64_to_frame(frame_b64) if frame_b64 else None,
             distress_flags= distress_flags,
             confidence=     confidence,
             alert_level=    alert_level,
@@ -111,47 +117,45 @@ class AlertManager:
             created_at=          datetime.now(timezone.utc).isoformat(),
         )
 
-        # ── Step 3: Save evidence screenshot (encode once) ──
-        broadcast_b64 = frame_b64
-        if np_frame is not None:
-            jpeg_bytes = await asyncio.to_thread(self._encode_jpeg, np_frame)
-            if not broadcast_b64:
-                broadcast_b64 = base64.b64encode(jpeg_bytes).decode("ascii")
-            screenshot_url = await self.evidence.save_bytes(
-                jpeg_bytes=  jpeg_bytes,
+        # ── Step 3: Save evidence screenshot ──
+        if frame_b64:
+            screenshot_url = await self.evidence.save(
+                frame_b64=   frame_b64,
                 incident_id= incident_id,
                 camera_id=   camera_id,
             )
             incident.screenshot_url = screenshot_url
 
-        # ── Step 4: Persist to Supabase (off the event loop) ──
+        # ── Step 4: Persist to Supabase ──
         await self._store(incident)
 
-        # In-memory store for fast lookup
+        # Keep in memory for fast access
         self._active[incident_id] = incident
 
-        # ── Step 5: SMS if CRITICAL + Gemini-confirmed ──
+        # ── Step 5: SMS if CRITICAL and Gemini confirmed ──
         if alert_level == "CRITICAL" and gemini_result.confirmed:
-            asyncio.create_task(self._send_sms(incident))
+            asyncio.create_task(
+                self._send_sms(incident)
+            )
 
         # ── Step 6: Broadcast to dashboard ──
         await ws_manager.broadcast_alert({
-            "incident_id":         incident_id,
-            "track_id":            track_id,
-            "alert_level":         alert_level,
-            "confidence":          confidence,
-            "distress_flags":      distress_flags,
-            "camera_id":           camera_id,
-            "location":            location,
-            "latitude":            latitude,
-            "longitude":           longitude,
-            "gemini_confirmed":    gemini_result.confirmed,
-            "gemini_description":  gemini_result.description,
-            "gemini_threat_level": gemini_result.threat_level,
-            "screenshot_url":      incident.screenshot_url,
-            "status":              "open",
-            "timestamp":           incident.created_at,
-            "frame_b64":           broadcast_b64,
+            "incident_id":        incident_id,
+            "track_id":           track_id,
+            "alert_level":        alert_level,
+            "confidence":         confidence,
+            "distress_flags":     distress_flags,
+            "camera_id":          camera_id,
+            "location":           location,
+            "latitude":           latitude,
+            "longitude":          longitude,
+            "gemini_confirmed":   gemini_result.confirmed,
+            "gemini_description": gemini_result.description,
+            "gemini_threat_level":gemini_result.threat_level,
+            "screenshot_url":     incident.screenshot_url,
+            "status":             "open",
+            "timestamp":          incident.created_at,
+            "frame_b64":          frame_b64,   # live frame for dashboard feed
         })
 
         return {
@@ -162,101 +166,76 @@ class AlertManager:
             "sms_queued":       alert_level == "CRITICAL" and gemini_result.confirmed,
         }
 
-    async def update_status(self, incident_id: str, status: str) -> None:
-        """Update incident status (called by routes.py PATCH /incidents/{id})."""
+    # ─────────────────────────────────────────
+    #  SUPABASE STORE
+    # ─────────────────────────────────────────
+
+    async def _store(self, incident: Incident):
+        """Persist incident to Supabase. Silently skips if not configured."""
+        if not self._sb:
+            print(f"[AlertManager] Supabase not configured; incident {incident.id} not persisted.")
+            return
+        try:
+            self._sb.table("incidents").insert(incident.to_dict()).execute()
+            print(f"[AlertManager] Stored {incident.id}")
+        except Exception as e:
+            print(f"[AlertManager] Supabase error: {e}")
+
+    async def update_status(self, incident_id: str, status: str):
+        """Update incident status — called by routes.py PATCH /incidents/{id}."""
+        # Update in-memory
         if incident_id in self._active:
             self._active[incident_id].status = status
 
+        # Update in Supabase
         if not self._sb:
             return
-
         try:
-            await asyncio.to_thread(
-                lambda: self._sb.table("incidents").update({
-                    "status":     status,
-                    "updated_at": datetime.now(timezone.utc).isoformat(),
-                }).eq("id", incident_id).execute()
-            )
+            self._sb.table("incidents").update({
+                "status":     status,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }).eq("id", incident_id).execute()
         except Exception as e:
             print(f"[AlertManager] Status update error: {e}")
 
-    async def remove(self, incident_id: str) -> None:
-        """Delete an incident (called by routes.py DELETE /incidents/{id})."""
-        self._active.pop(incident_id, None)
-        if not self._sb:
-            return
-        try:
-            await asyncio.to_thread(
-                lambda: self._sb.table("incidents").delete().eq("id", incident_id).execute()
-            )
-        except Exception as e:
-            print(f"[AlertManager] Delete error: {e}")
-
-    def get_active(self) -> list[Incident]:
-        return list(self._active.values())
-
-    def get_incident(self, incident_id: str) -> Optional[Incident]:
-        return self._active.get(incident_id)
-
-    def clear(self) -> None:
-        self._active.clear()
-        print("[AlertManager] In-memory store cleared.")
-
     # ─────────────────────────────────────────
-    #  INTERNAL
+    #  SMS — Fast2SMS
     # ─────────────────────────────────────────
 
-    async def _store(self, incident: Incident) -> None:
-        if not self._sb:
-            print(f"[AlertManager] Supabase not configured; {incident.id} not persisted.")
-            return
-        try:
-            await asyncio.to_thread(
-                lambda: self._sb.table("incidents").insert(incident.to_dict()).execute()
-            )
-            print(f"[AlertManager] Stored {incident.id}")
-        except Exception as e:
-            print(f"[AlertManager] Supabase insert error: {e}")
-
-    async def _send_sms(self, incident: Incident) -> None:
-        # Throttle by (camera, location) so a re-tracked person can't spam
-        key  = (incident.camera_id, incident.location)
+    async def _send_sms(self, incident: Incident):
+        """Send SMS alert to police. Throttled per track_id."""
         now  = time.time()
-        last = self._sms_last.get(key, 0)
-        if now - last < SMS_COOLDOWN_SEC:
-            print(f"[AlertManager] SMS throttled for {key}")
-            return
-        self._sms_last[key] = now
+        last = self._sms_last.get(incident.track_id, 0)
 
-        if not is_sms_configured():
+        if now - last < SMS_COOLDOWN_SEC:
+            print(f"[AlertManager] SMS throttled for track_id {incident.track_id}")
+            return
+
+        self._sms_last[incident.track_id] = now
+
+        if not FAST2SMS_KEY or not POLICE_PHONE:
             print(f"[AlertManager] SMS not configured; would have alerted: {incident.id}")
             return
 
-        ts      = datetime.now().strftime("%H:%M")
-        # Quick route is limited to 160 chars — keep it tight.
+        ts      = datetime.now().strftime("%H:%M:%S")
         message = (
-            f"ARGUS [{incident.alert_level}] "
-            f"{incident.location} {incident.camera_id} "
-            f"{int(incident.confidence * 100)}% {ts} {incident.id}"
-        )[:155]
-
-        numbers = ",".join(
-            p.strip().lstrip("+").lstrip("91")
-            for p in (POLICE_PHONE or "").split(",")
-            if p.strip()
+            f"ARGUS ALERT [{incident.alert_level}]\n"
+            f"Location: {incident.location}\n"
+            f"Camera: {incident.camera_id}\n"
+            f"Confidence: {incident.confidence:.0%}\n"
+            f"ID: {incident.id}\n"
+            f"Time: {ts}"
         )
-        if not numbers:
-            print("[AlertManager] POLICE_PHONE empty after parsing; skipping SMS.")
-            return
+
+        numbers = ",".join(p.strip() for p in POLICE_PHONE.split(",") if p.strip())
 
         try:
             async with httpx.AsyncClient(timeout=10) as client:
-                resp = await client.post(
+                resp = await client.get(
                     "https://www.fast2sms.com/dev/bulkV2",
                     headers={"authorization": FAST2SMS_KEY},
-                    data={
-                        "message":          message,
-                        "language":         "english",
+                    params={
+                        "variables_values": message,
                         "route":            "q",
                         "numbers":          numbers,
                     },
@@ -269,20 +248,43 @@ class AlertManager:
         except Exception as e:
             print(f"[AlertManager] SMS error: {e}")
 
+    # ─────────────────────────────────────────
+    #  IN-MEMORY HELPERS
+    # ─────────────────────────────────────────
+
+    def get_active(self) -> list[Incident]:
+        """Return all in-memory active incidents."""
+        return list(self._active.values())
+
+    def get_incident(self, incident_id: str) -> Optional[Incident]:
+        return self._active.get(incident_id)
+
+    def clear(self):
+        """Flush in-memory store — for testing."""
+        self._active.clear()
+        print("[AlertManager] In-memory store cleared.")
+
+    # ─────────────────────────────────────────
+    #  UTILITY
+    # ─────────────────────────────────────────
+
     @staticmethod
-    def _b64_to_frame(frame_b64: str) -> Optional[np.ndarray]:
+    def _b64_to_frame(frame_b64: str):
+        """Decode base64 JPEG string back to numpy array for Gemini."""
+        import base64
+        import numpy as np
+        import cv2
         try:
-            buf = base64.b64decode(frame_b64)
-            arr = np.frombuffer(buf, dtype=np.uint8)
-            return cv2.imdecode(arr, cv2.IMREAD_COLOR)
+            buf   = base64.b64decode(frame_b64)
+            arr   = np.frombuffer(buf, dtype=np.uint8)
+            frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+            return frame
         except Exception:
             return None
 
-    @staticmethod
-    def _encode_jpeg(frame: np.ndarray, quality: int = 85) -> bytes:
-        _, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, quality])
-        return buf.tobytes()
 
+# ─────────────────────────────────────────────
+#  SINGLETON
+# ─────────────────────────────────────────────
 
-# Module-level singleton — imported as `from ..alerts.alert_manager import alert_manager`
 alert_manager = AlertManager()
