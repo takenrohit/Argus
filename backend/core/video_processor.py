@@ -82,9 +82,12 @@ class VideoProcessor:
         self._last_alerted: dict[int, float] = {}
 
         # State
-        self.running   = False
+        self.running     = False
         self.frame_count = 0
         self.cap: cv2.VideoCapture | None = None
+
+        # NEW: latest annotated JPEG, served by /api/video/{camera_id}
+        self._latest_jpeg: bytes | None = None
 
     # ─────────────────────────────────────────
     #  START / STOP
@@ -113,11 +116,20 @@ class VideoProcessor:
             while self.running:
                 ret, frame = self.cap.read()
                 if not ret:
+                    # If source is a file, loop it seamlessly for demo
+                    if isinstance(self.source, str):
+                        self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                        continue
                     print("[VideoProcessor] Stream ended or frame dropped.")
                     break
 
                 self.frame_count += 1
                 annotated = await self._process_frame(frame, on_alert)
+
+                # NEW: cache JPEG so the MJPEG endpoint can serve it
+                ok, buf = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 70])
+                if ok:
+                    self._latest_jpeg = buf.tobytes()
 
                 if show_preview:
                     cv2.imshow(f"Argus - {self.camera_id}", annotated)
@@ -238,6 +250,14 @@ class VideoProcessor:
         return False
 
     # ─────────────────────────────────────────
+    #  LATEST JPEG — MJPEG ENDPOINT
+    # ─────────────────────────────────────────
+
+    def latest_jpeg(self) -> bytes | None:
+        """Most recent annotated frame, JPEG-encoded. Used by /api/video/{id}."""
+        return self._latest_jpeg
+
+    # ─────────────────────────────────────────
     #  DRAWING / ANNOTATIONS
     # ─────────────────────────────────────────
 
@@ -308,4 +328,4 @@ class VideoProcessor:
         """
         import base64
         _, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, quality])
-        return base64.b64encode(buf).decode("utf-8") 
+        return base64.b64encode(buf).decode("utf-8")
