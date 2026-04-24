@@ -1,24 +1,36 @@
-# Logs
-logs
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+
+# ── Env / Secrets ──
+.env
+.env.*
+!.env.example
+backend/.env
+
+# ── Node / Vite ──
+node_modules/
+dist/
+build/
+.vite/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# ── Editors / OS ──
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ── Argus runtime ──
+backend/evidence/
+backend/sample_videos/*.mp4
+*.pt
