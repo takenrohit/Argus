@@ -16,7 +16,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     { id: 'devices', label: 'Devices', icon: Database },
     { id: 'alerts', label: 'Alerts', icon: Bell },
     { id: 'incidents', label: 'Incidents', icon: FileText },
-    { id: 'analytics', label: 'Analytics', icon: Activity },
+    { id: 'map', label: 'Map', icon: Activity },
     { id: 'reports', label: 'Reports', icon: Shield },
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'help', label: 'Help', icon: HelpCircle },
@@ -43,7 +43,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
       <nav className="flex-1 px-3 space-y-4">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeTab === item.id || (item.id === 'incidents' && activeTab === 'incidents') || (item.id === 'analytics' && activeTab === 'analytics');
+          const isActive = activeTab === item.id || (item.id === 'map' && activeTab === 'analytics');
           return (
             <button
               key={item.id}
@@ -91,9 +91,4 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
           isExpanded ? "w-full" : ""
         )}>
           <Moon className="w-5 h-5" />
-          {isExpanded && <span className="ml-3 text-sm font-medium">Theme</span>}
-        </button>
-      </div>
-    </aside>
-  );
-}
+          {isExpanded && <span className="ml-3 text-sm font
