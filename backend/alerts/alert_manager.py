@@ -227,6 +227,9 @@ class AlertManager:
 
         self._sms_last[incident.track_id] = now
 
+        # Dynamically fetch config to avoid caching old values from .env
+        from ..config import FAST2SMS_KEY, POLICE_PHONE
+
         if not FAST2SMS_KEY or not POLICE_PHONE:
             print(f"[AlertManager] SMS not configured; would have alerted: {incident.id}")
             return
@@ -249,9 +252,9 @@ class AlertManager:
                     "https://www.fast2sms.com/dev/bulkV2",
                     headers={"authorization": FAST2SMS_KEY},
                     params={
-                        "variables_values": message,
-                        "route":            "q",
-                        "numbers":          numbers,
+                        "message": message,
+                        "route":   "q",
+                        "numbers": numbers,
                     },
                 )
                 data = resp.json()

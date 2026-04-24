@@ -20,10 +20,7 @@ from ..config import GEMINI_API_KEY
 # ─────────────────────────────────────────────
 
 GEMINI_MODEL   = "gemini-1.5-flash"   # fast + free tier
-GEMINI_URL     = (
-    f"https://generativelanguage.googleapis.com/v1beta/models/"
-    f"{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
-)
+# We construct the URL dynamically in the call method to ensure the latest API key is used
 REQUEST_TIMEOUT = 12   # seconds
 
 
@@ -199,8 +196,12 @@ Rules:
             }
         }
 
+        # Resolve key dynamically to ensure it's always up to date
+        from ..config import GEMINI_API_KEY
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
+
         async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
-            resp = await client.post(GEMINI_URL, json=body)
+            resp = await client.post(url, json=body)
             resp.raise_for_status()
 
         data = resp.json()

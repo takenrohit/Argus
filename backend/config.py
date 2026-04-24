@@ -4,7 +4,7 @@ import os
 
 # Explicitly load from project root (one level up from backend/)
 _env_path = Path(__file__).resolve().parent.parent / ".env"
-load_dotenv(_env_path)
+load_dotenv(_env_path, override=True) # Ensure .env updates take effect immediately
 
 SUPABASE_URL     = os.getenv("SUPABASE_URL")
 SUPABASE_KEY     = os.getenv("SUPABASE_KEY")

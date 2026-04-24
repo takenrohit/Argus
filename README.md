@@ -113,7 +113,7 @@ Backend
 
 1️⃣ Install backend dependencies
 
-`pip install -r backend/requirements.txt`
+`pip install -r requirements.txt`
 
 2️⃣ Start FastAPI from the repo root
 
@@ -142,6 +142,12 @@ Single-app build
 `uvicorn backend.main:app --reload`
 
 FastAPI will automatically serve the built frontend from the generated `dist/` folder.
+
+### 🛡️ Supabase Setup (Important)
+To ensure the dashboard works correctly, please configure your Supabase project:
+1. **Tables**: Create an `incidents` table (see `backend/models/incident.py` for schema).
+2. **RLS Policies**: In the Supabase dashboard, set the `incidents` table policy to **"Enable access for all users"** for `SELECT`, `INSERT`, and `UPDATE` (since we use the `anon` key).
+3. **Storage**: Create a public bucket named **`incidents`** for evidence screenshots.
 🎥 Running Video Detection
 The system supports:
 
@@ -154,7 +160,7 @@ Example:
 
 Python
 
-tracker = YOLOTracker("assets/demo_videos/encirclement.mp4")
+tracker = YOLOTracker("backend/sample_videos/incident.mp4")
 tracker.run()
 📊 Dashboard Pages
 / → Live Camera Feed + Active Alerts
