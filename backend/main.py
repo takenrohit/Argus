@@ -1,22 +1,20 @@
-# ============================================================
-# main.py — Argus Backend Entry Point
-# Real-Time AI Surveillance System
-# ============================================================
+from pathlib import Path
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import json
-import asyncio
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
-# ── App Initialization ───────────────────────────────────────
+from backend.api.routes import router
+from backend.api.websocket import websocket_endpoint
+
+
 app = FastAPI(
     title="Argus",
     description="Real-Time AI Public Safety Surveillance System",
     version="1.0.0",
 )
 
-# ── CORS Middleware ──────────────────────────────────────────
-# Allow all origins for hackathon demo; restrict in production
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,69 +23,43 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Router Registration ──────────────────────────────────────
-# Safely include API routes if the module is available
-try:
-    from api.routes import router
-    app.include_router(router, prefix="/api")
-except ImportError:
-    pass  # Routes not yet implemented; skip gracefully
+app.include_router(router, prefix="/api")
+app.add_api_websocket_route("/ws/alerts", websocket_endpoint)
 
-# ── WebSocket Connection Manager ─────────────────────────────
-# Manages active WebSocket connections for broadcasting alerts
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: list[WebSocket] = []
+FRONTEND_DIST_DIR = (
+    Path(__file__).resolve().parent.parent
+    / "frontend"
+    / "Argus2.0"
+    / "ASSETS"
+    / "argus-smart-surveillance"
+    / "dist"
+)
 
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
 
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
-
-    async def broadcast(self, message: dict):
-        """Broadcast a JSON alert to all connected clients."""
-        payload = json.dumps(message)
-        for connection in self.active_connections:
-            await connection.send_text(payload)
-
-manager = ConnectionManager()
-
-# ── Health Check ─────────────────────────────────────────────
-@app.get("/")
-async def health_check():
-    """Simple health check to verify backend is running."""
+@app.get("/health")
+async def root_health_check():
     return {"status": "Argus backend running"}
 
-# ── WebSocket Alert Endpoint ─────────────────────────────────
-# Clients (Next.js dashboard) connect here to receive live alerts
-@app.websocket("/ws/alerts")
-async def websocket_alerts(websocket: WebSocket):
-    """
-    Real-time alert stream via WebSocket.
-    The distress detection engine pushes alerts through this endpoint.
-    Payload shape:
-        {
-            "type": "ENCIRCLEMENT" | "FOLLOWING" | "STRUGGLE",
-            "confidence": float,
-            "camera_id": str,
-            "timestamp": str,
-            "bbox": [x1, y1, x2, y2]
-        }
-    """
-    await manager.connect(websocket)
-    try:
-        while True:
-            # Keep connection alive; alerts are pushed via manager.broadcast()
-            # Optionally handle incoming client messages (e.g. ACK, ping)
-            data = await websocket.receive_text()
-            if data == "ping":
-                await websocket.send_text("pong")
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
 
-# ── Expose Manager for Alert Broadcasting ────────────────────
-# Import this in distress_engine.py or video_processor.py:
-#   from main import manager
-#   await manager.broadcast(alert_payload)
+if FRONTEND_DIST_DIR.exists():
+    assets_dir = FRONTEND_DIST_DIR / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="frontend-assets")
+
+    @app.get("/", include_in_schema=False)
+    async def serve_frontend():
+        return FileResponse(FRONTEND_DIST_DIR / "index.html")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_frontend_routes(full_path: str):
+        requested_path = FRONTEND_DIST_DIR / full_path
+        if requested_path.is_file():
+            return FileResponse(requested_path)
+        return FileResponse(FRONTEND_DIST_DIR / "index.html")
+else:
+    @app.get("/", include_in_schema=False)
+    async def fallback_root():
+        return {
+            "status": "Argus backend running",
+            "frontend": "Build the frontend to serve it from FastAPI.",
+        }
