@@ -105,7 +105,9 @@ class VideoProcessor:
             on_alert:     async callback fired when a distress event occurs
             show_preview: show OpenCV window (useful for local testing)
         """
+        # Use default OpenCV capture which handles RTSP transport automatically
         self.cap = cv2.VideoCapture(self.source)
+
         if not self.cap.isOpened():
             raise RuntimeError(f"[VideoProcessor] Cannot open source: {self.source}")
 

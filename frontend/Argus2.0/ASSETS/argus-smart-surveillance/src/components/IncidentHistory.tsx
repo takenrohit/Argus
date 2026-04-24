@@ -10,10 +10,47 @@ interface IncidentHistoryProps {
 }
 
 export default function IncidentHistory({ incidents, onSelect }: IncidentHistoryProps) {
-  const criticalIncidents = useMemo(
-    () => incidents.filter((incident) => incident.alertLevel === 'CRITICAL'),
-    [incidents]
-  );
+  const stats = useMemo(() => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const countsByDay = [0, 0, 0, 0, 0, 0, 0];
+    
+    const severityCounts = {
+      CRITICAL: 0,
+      REVIEW: 0,
+      MONITOR: 0,
+      SYSTEM: 0
+    };
+
+    incidents.forEach(inc => {
+      // Parse DD/MM/YYYY, HH:MM:SS or similar
+      try {
+        const parts = inc.timestamp.split(',')[0].split('/');
+        if (parts.length === 3) {
+          const date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          countsByDay[date.getDay()]++;
+        }
+      } catch (e) {}
+      
+      if (severityCounts.hasOwnProperty(inc.alertLevel)) {
+        severityCounts[inc.alertLevel as keyof typeof severityCounts]++;
+      }
+    });
+
+    const total = incidents.length || 1;
+    const criticalPercent = Math.round((severityCounts.CRITICAL / total) * 100);
+    
+    // Shift days so Mon is first to match UI
+    const shiftedCounts = [countsByDay[1], countsByDay[2], countsByDay[3], countsByDay[4], countsByDay[5], countsByDay[6], countsByDay[0]];
+    const maxCount = Math.max(...shiftedCounts, 5);
+
+    return {
+      shiftedCounts,
+      maxCount,
+      criticalPercent,
+      severityCounts,
+      total
+    };
+  }, [incidents]);
 
   return (
     <div className="flex-1 p-6 overflow-y-auto bg-brand-dark custom-scrollbar flex flex-col gap-6">
@@ -55,21 +92,21 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
                </div>
                
                <div className="flex items-center gap-4 text-[10px] text-white/50 mb-6 font-medium">
-                  <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-[2px] bg-brand-red" /> Critical by Severity</div>
-                  <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-[2px] bg-white/20" /> Severity</div>
+                  <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-[2px] bg-brand-red" /> Critical Alerts</div>
+                  <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-[2px] bg-brand-amber" /> Total Volume</div>
                </div>
                
                {/* Bar Chart */}
                <div className="flex items-end gap-3 h-[120px] pb-4 border-b border-white/5 relative">
                   <div className="absolute left-0 top-0 bottom-4 flex flex-col justify-between text-[10px] text-white/30 w-6">
-                     <span>50</span><span>25</span><span>0</span>
+                     <span>{stats.maxCount}</span><span>{Math.round(stats.maxCount/2)}</span><span>0</span>
                   </div>
                   <div className="flex-1 flex items-end gap-2 pl-8 h-full">
-                     {[20, 45, 80, 50, 15, 5, 20].map((h, i) => (
+                     {stats.shiftedCounts.map((count, i) => (
                        <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
                          <div 
-                           className={cn("w-full rounded-sm transition-all relative overflow-hidden", i === 2 ? "bg-brand-red" : "bg-brand-amber")} 
-                           style={{ height: `${h}%` }} 
+                           className={cn("w-full rounded-sm transition-all relative overflow-hidden", count > 0 && count === Math.max(...stats.shiftedCounts) ? "bg-brand-red" : "bg-brand-amber")} 
+                           style={{ height: `${(count / stats.maxCount) * 100}%`, minHeight: count > 0 ? '4px' : '0px' }} 
                          />
                          <span className="text-[9px] text-white/40 uppercase">
                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]}
@@ -83,7 +120,7 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
             {/* Status Breakdown */}
             <section className="glass-panel p-5">
                <div className="flex justify-between items-center mb-6">
-                 <h3 className="text-[13px] font-semibold text-white/90">Status Breakdown</h3>
+                 <h3 className="text-[13px] font-semibold text-white/90">Severity Breakdown</h3>
                  <MoreHorizontal className="w-4 h-4 text-white/40" />
                </div>
                
@@ -91,23 +128,32 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
                   <div className="relative w-[100px] h-[100px]">
                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                         <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
-                        <circle cx="50" cy="50" r="42" fill="none" stroke="#ff6b3d" strokeWidth="10" strokeDasharray="263" strokeDashoffset="144" strokeLinecap="round" className="drop-shadow-[0_0_8px_rgba(255,107,61,0.55)]" />
+                        <circle 
+                          cx="50" cy="50" r="42" fill="none" stroke="#ff6b3d" strokeWidth="10" 
+                          strokeDasharray="263.8" 
+                          strokeDashoffset={263.8 - (263.8 * (stats.criticalPercent / 100))} 
+                          strokeLinecap="round" 
+                          className="drop-shadow-[0_0_8px_rgba(255,107,61,0.55)] transition-all duration-1000" 
+                        />
                      </svg>
                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <p className="text-[18px] font-bold text-white/90">45%</p>
+                        <p className="text-[18px] font-bold text-white/90">{stats.criticalPercent}%</p>
                      </div>
                   </div>
                   
                   <div className="flex-1 grid grid-cols-2 gap-y-4 pl-6">
                      {[
-                        { label: 'Critical', color: 'bg-brand-red' },
-                        { label: 'Major', color: 'bg-brand-amber' },
-                        { label: 'Status Reviews', color: 'bg-brand-blue' },
-                        { label: 'Minor', color: 'bg-white/20' }
+                        { label: 'Critical', color: 'bg-brand-red', count: stats.severityCounts.CRITICAL },
+                        { label: 'Review', color: 'bg-brand-amber', count: stats.severityCounts.REVIEW },
+                        { label: 'Monitor', color: 'bg-brand-green', count: stats.severityCounts.MONITOR },
+                        { label: 'System', color: 'bg-white/20', count: stats.severityCounts.SYSTEM }
                      ].map((s, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                           <div className={cn("w-2 h-2 rounded-[2px]", s.color)} />
-                           <span className="text-[11px] text-white/60">{s.label}</span>
+                        <div key={i} className="flex flex-col">
+                           <div className="flex items-center gap-2">
+                             <div className={cn("w-2 h-2 rounded-[2px]", s.color)} />
+                             <span className="text-[10px] text-white/40 uppercase font-bold">{s.label}</span>
+                           </div>
+                           <span className="text-[12px] text-white font-mono ml-4">{s.count}</span>
                         </div>
                      ))}
                   </div>
@@ -121,7 +167,7 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
                  <MoreHorizontal className="w-4 h-4 text-white/40" />
                </div>
                <div className="space-y-4 overflow-y-auto pr-1 flex-1 custom-scrollbar">
-                  {criticalIncidents.slice(0, 3).map((item) => (
+                  {criticalIncidents.slice(0, 5).map((item) => (
                      <div key={item.id} className="flex items-start gap-3 cursor-pointer group" onClick={() => onSelect(item)}>
                         <div className="w-8 h-8 rounded-lg bg-brand-red/20 border border-brand-red/40 flex items-center justify-center shrink-0">
                            <Activity className="w-4 h-4 text-brand-red" />
@@ -130,14 +176,18 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
                            <p className="text-[12px] text-white/90 font-medium truncate group-hover:text-white transition-colors">{item.type}</p>
                            <p className="text-[11px] text-white/40 truncate">{item.location.address}</p>
                         </div>
-                        <div className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-brand-red shadow-[0_0_6px_rgba(15,176,181,0.65)]" />
+                        <div className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-brand-red shadow-[0_0_6px_rgba(255,107,61,0.65)]" />
                      </div>
                   ))}
                   {!criticalIncidents.length && (
-                     <p className="text-[11px] text-white/40">No critical incidents available from the backend yet.</p>
+                     <div className="flex flex-col items-center justify-center h-full opacity-20 py-8">
+                        <ShieldAlert className="w-8 h-8 mb-2" />
+                        <p className="text-[11px] text-white uppercase tracking-widest font-bold">No Critical Alerts</p>
+                     </div>
                   )}
                </div>
             </section>
+
          </div>
 
          {/* Main History Log Column */}

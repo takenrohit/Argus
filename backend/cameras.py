@@ -41,6 +41,14 @@ CAMERAS: dict[str, Camera] = {
         latitude=CAMERA_LAT or 28.6139,
         longitude=CAMERA_LNG or 77.2090,
     ),
+    "CAM-03": Camera(
+        id="CAM-03",
+        name="North-East Perimeter",
+        source=str(SAMPLE_VIDEO),
+        location="Sector 14 — Entry Gate",
+        latitude=28.4744,
+        longitude=77.0652,
+    ),
 }
 
 
