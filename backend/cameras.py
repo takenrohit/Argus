@@ -5,21 +5,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from .config import CAMERA_LAT, CAMERA_LNG
 
-SAMPLE_DIR     = Path(__file__).resolve().parent / "sample_videos"
-SAMPLE_VIDEO_1 = SAMPLE_DIR / "incident.mp4"
-SAMPLE_VIDEO_2 = SAMPLE_DIR / "incident2.mp4"
-
-
-def _resolve_source(*candidates: Path) -> str:
-    """Pick the first video file that actually exists. Raises if none found."""
-    for p in candidates:
-        if p.exists():
-            return str(p)
-    tried = ", ".join(str(p) for p in candidates)
-    raise FileNotFoundError(
-        f"No video found for camera. Tried: {tried}. "
-        f"Drop a video into {SAMPLE_DIR} and restart."
-    )
+SAMPLE_VIDEO = Path(__file__).resolve().parent / "sample_videos" / "incident.mp4"
 
 
 @dataclass
@@ -42,7 +28,7 @@ CAMERAS: dict[str, Camera] = {
     "CAM-01": Camera(
         id="CAM-01",
         name="Hospital Entrance",
-        source=_resolve_source(SAMPLE_VIDEO_1, SAMPLE_VIDEO_2),
+        source=str(SAMPLE_VIDEO) if SAMPLE_VIDEO.exists() else 0,
         location="AIIMS Delhi — Main Entrance",
         latitude=28.5672,
         longitude=77.2100,
@@ -50,18 +36,10 @@ CAMERAS: dict[str, Camera] = {
     "CAM-02": Camera(
         id="CAM-02",
         name="Operator Camera",
-        source=_resolve_source(SAMPLE_VIDEO_2, SAMPLE_VIDEO_1),
+        source=str(Path(__file__).resolve().parent / "sample_videos" / "incident2.mp4"),
         location="Hackathon Demo Booth",
         latitude=CAMERA_LAT or 28.6139,
         longitude=CAMERA_LNG or 77.2090,
-    ),
-    "CAM-WEB": Camera(
-        id="CAM-WEB",
-        name="Live Webcam",
-        source=0,
-        location="Operator Workstation",
-        latitude=28.6139,
-        longitude=77.2090,
     ),
 }
 

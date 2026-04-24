@@ -13,7 +13,6 @@ import { useSearchParams } from 'react-router-dom';
 import MapComponent from '../components/MapComponent';
 import type { Incident } from '../types';
 import { cn } from '../lib/utils';
-import LiveFeedGrid from '../components/LiveFeed';
 
 interface DashboardPageProps {
   incidents: Incident[];
@@ -110,22 +109,37 @@ export default function DashboardPage({ incidents, onSelectIncident, searchQuery
     );
   }
 
-    if (panel === 'devices') {
+  if (panel === 'devices') {
+    const devices = Array.from(new Map(incidents.map((incident) => [incident.cameraId, incident])).values());
     return (
       <div className="flex-1 overflow-y-auto bg-brand-dark p-6 text-white custom-scrollbar">
-        <div className="mx-auto max-w-7xl space-y-6">
+        <div className="mx-auto max-w-6xl space-y-6">
           <div className="glass-panel p-5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold">Live Camera Feeds</h2>
-                <p className="mt-1 text-sm text-white/42">
-                  Real-time MJPEG streams with AI-powered fight cluster detection overlays.
-                </p>
+                <h2 className="text-xl font-semibold">Connected Camera Devices</h2>
+                <p className="mt-1 text-sm text-white/42">Operational camera nodes inferred from the live incident stream.</p>
               </div>
-              <Camera className="h-5 w-5 text-brand-red" />
+              <Database className="h-5 w-5 text-brand-red" />
             </div>
           </div>
-          <LiveFeedGrid />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {devices.map((device) => (
+              <button key={device.cameraId} onClick={() => onSelectIncident(device)} className="glass-panel p-5 text-left transition-transform hover:-translate-y-0.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-white/92">{device.cameraId}</p>
+                    <p className="mt-1 text-xs text-white/45">{device.location.address}</p>
+                  </div>
+                  <Camera className="mt-0.5 h-4 w-4 text-white/38" />
+                </div>
+                <p className={cn('mt-5 text-xs font-semibold', severityColor(device.alertLevel))}>{device.alertLevel}</p>
+              </button>
+            ))}
+            {!devices.length && (
+              <div className="glass-panel p-5 text-sm text-white/42">No devices detected yet because no incidents have been received from the backend.</div>
+            )}
+          </div>
         </div>
       </div>
     );
