@@ -56,8 +56,8 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     >
       <div className={cn("p-5 flex items-center justify-center mb-6 transition-all", isExpanded ? "mt-2" : "mt-1")}>
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-white/8 flex items-center justify-center">
-            <Shield className="w-5 h-5 text-white" strokeWidth={1.8} />
+          <div className="w-[62px] h-[62px] rounded-full overflow-hidden flex items-center justify-center border border-white/10">
+            <img src="/logo.jpeg" alt="Argus Logo" className="w-full h-full object-cover" />
           </div>
           {isExpanded && <h1 className="font-semibold tracking-wide text-lg text-white/90">Argus</h1>}
         </div>

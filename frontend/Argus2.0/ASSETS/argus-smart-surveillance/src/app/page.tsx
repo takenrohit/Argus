@@ -16,6 +16,7 @@ import { cn } from '../lib/utils';
 
 interface DashboardPageProps {
   incidents: Incident[];
+  cameras?: any[];
   onSelectIncident: (inc: Incident) => void;
   searchQuery: string;
 }
@@ -30,7 +31,7 @@ function severityColor(alertLevel: Incident['alertLevel']) {
   return 'text-brand-green';
 }
 
-export default function DashboardPage({ incidents, onSelectIncident, searchQuery }: DashboardPageProps) {
+export default function DashboardPage({ incidents, cameras = [], onSelectIncident, searchQuery }: DashboardPageProps) {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [searchParams] = useSearchParams();
   const panel = searchParams.get('panel') || 'overview';
@@ -150,6 +151,7 @@ export default function DashboardPage({ incidents, onSelectIncident, searchQuery
       <div className="absolute inset-0">
         <MapComponent
           incidents={incidents}
+          cameras={cameras}
           onSelectIncident={onSelectIncident}
           showHeatmap={showHeatmap}
           searchQuery={searchQuery || 'Bengaluru Electronic City'}

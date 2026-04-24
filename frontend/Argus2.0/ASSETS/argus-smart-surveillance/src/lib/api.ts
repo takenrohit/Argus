@@ -83,6 +83,13 @@ export async function fetchStats(): Promise<DashboardStats> {
   return response.json();
 }
 
+export async function fetchCameras() {
+  const response = await fetch(getApiUrl('/api/cameras'));
+  if (!response.ok) throw new Error(`Failed to fetch cameras (${response.status})`);
+  const payload = await response.json();
+  return payload.cameras || [];
+}
+
 export async function updateIncidentStatus(
   incidentId: string,
   status: 'acknowledged' | 'resolved' | 'false_positive'

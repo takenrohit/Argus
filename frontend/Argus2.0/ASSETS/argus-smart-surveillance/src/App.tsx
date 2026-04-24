@@ -24,6 +24,7 @@ function MainContent() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [cameras, setCameras] = useState<any[]>([]);
   const [backendNote, setBackendNote] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -38,13 +39,18 @@ function MainContent() {
 
     async function loadDashboardData() {
       try {
-        const [incidentData, statsData] = await Promise.all([fetchIncidents(), fetchStats()]);
+        const [incidentData, statsData, cameraData] = await Promise.all([
+          fetchIncidents(), 
+          fetchStats(),
+          fetch(getApiUrl('/api/cameras')).then(res => res.json()).then(data => data.cameras || [])
+        ]);
         if (isCancelled) {
           return;
         }
 
         setIncidents(incidentData.incidents);
         setStats(statsData);
+        setCameras(cameraData);
         setBackendNote(incidentData.note || null);
       } catch (error) {
         if (!isCancelled) {
@@ -242,7 +248,7 @@ function MainContent() {
           <Routes>
             <Route
               path="/dashboard"
-              element={<DashboardPage incidents={filteredIncidents} onSelectIncident={setSelectedIncident} searchQuery={searchQuery} />}
+              element={<DashboardPage incidents={filteredIncidents} cameras={cameras} onSelectIncident={setSelectedIncident} searchQuery={searchQuery} />}
             />
             <Route
               path="/devices"
@@ -252,7 +258,7 @@ function MainContent() {
             <Route path="/incidents" element={<IncidentsPage incidents={filteredIncidents} onSelectIncident={setSelectedIncident} />} />
             <Route
               path="/analytics"
-              element={<MapPage incidents={filteredIncidents} onSelectIncident={setSelectedIncident} searchQuery={searchQuery} />}
+              element={<MapPage incidents={filteredIncidents} cameras={cameras} onSelectIncident={setSelectedIncident} searchQuery={searchQuery} />}
             />
             <Route
               path="/reports"

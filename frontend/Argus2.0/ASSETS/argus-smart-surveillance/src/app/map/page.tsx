@@ -7,11 +7,12 @@ import { cn } from '../../lib/utils';
 
 interface MapPageProps {
   incidents: Incident[];
+  cameras?: any[];
   onSelectIncident: (inc: Incident) => void;
   searchQuery: string;
 }
 
-export default function MapPage({ incidents, onSelectIncident, searchQuery }: MapPageProps) {
+export default function MapPage({ incidents, cameras = [], onSelectIncident, searchQuery }: MapPageProps) {
   const [showHeatmap, setShowHeatmap] = useState(true);
 
   const stats = useMemo(() => {
@@ -124,6 +125,7 @@ export default function MapPage({ incidents, onSelectIncident, searchQuery }: Ma
 
       <MapComponent 
         incidents={incidents} 
+        cameras={cameras}
         onSelectIncident={onSelectIncident}
         showHeatmap={showHeatmap}
         searchQuery={searchQuery}

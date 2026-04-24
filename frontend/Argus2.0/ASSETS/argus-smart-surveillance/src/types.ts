@@ -40,6 +40,15 @@ export interface CameraStream {
   feedUrl: string;
 }
 
+export interface Camera {
+  id: string;
+  name: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+  status: string;
+}
+
 export interface BackendIncidentPayload {
   id?: string;
   incident_id?: string;

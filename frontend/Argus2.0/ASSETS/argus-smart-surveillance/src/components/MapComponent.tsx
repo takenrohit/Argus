@@ -20,6 +20,12 @@ const redIcon = createCustomIcon('#ff6b3d');
 const amberIcon = createCustomIcon('#ffb36b');
 const greenIcon = createCustomIcon('#e8e8e8');
 const searchIcon = createCustomIcon('#ff6b3d');
+const cameraIcon = L.divIcon({
+  className: 'custom-div-icon',
+  html: `<div style="background-color:#4a90e2;width:10px;height:10px;border-radius:2px;border:2px solid white;box-shadow:0 0 10px #4a90e2;"></div>`,
+  iconSize: [10, 10],
+  iconAnchor: [5, 5],
+});
 
 const cityCoordinates: Record<string, [number, number]> = {
   mumbai: [19.076, 72.8777],
@@ -41,6 +47,7 @@ const cityCoordinates: Record<string, [number, number]> = {
 
 interface MapComponentProps {
   incidents: Incident[];
+  cameras?: any[];
   onSelectIncident: (incident: Incident) => void;
   showHeatmap: boolean;
   searchQuery?: string;
@@ -138,7 +145,7 @@ function MapViewport({
   return null;
 }
 
-export default function MapComponent({ incidents, onSelectIncident, showHeatmap, searchQuery = '' }: MapComponentProps) {
+export default function MapComponent({ incidents, cameras = [], onSelectIncident, showHeatmap, searchQuery = '' }: MapComponentProps) {
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const center = useMemo<[number, number]>(() => {
     const firstValid = incidents.find(
@@ -166,6 +173,25 @@ export default function MapComponent({ incidents, onSelectIncident, showHeatmap,
             </Popup>
           </Marker>
         )}
+
+        {cameras.map((camera) => (
+          <Marker
+            key={camera.id}
+            position={[camera.latitude, camera.longitude]}
+            icon={cameraIcon}
+          >
+            <Popup className="custom-leaflet-popup">
+              <div className="text-white p-3 bg-brand-surface rounded-xl border border-brand-border shadow-2xl min-w-[180px]">
+                <div className="font-bold flex items-center justify-between mb-1">
+                  <span className="text-xs uppercase tracking-widest text-brand-blue">{camera.id}</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-brand-blue animate-pulse" />
+                </div>
+                <div className="text-[10px] text-white/70 font-medium mb-1">{camera.name}</div>
+                <div className="text-[9px] text-white/40 italic">{camera.location}</div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
 
         {incidents.map((incident) => {
           const icon =

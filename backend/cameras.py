@@ -27,11 +27,11 @@ class Camera:
 CAMERAS: dict[str, Camera] = {
     "CAM-01": Camera(
         id="CAM-01",
-        name="Hospital Entrance",
+        name="BMSCE Main Campus",
         source=0,
-        location="AIIMS Delhi — Main Entrance",
-        latitude=28.5672,
-        longitude=77.2100,
+        location="BMSCE College of Engineering — Bangalore, KA",
+        latitude=12.9415,
+        longitude=77.5659,
     ),
     "CAM-02": Camera(
         id="CAM-02",
