@@ -7,6 +7,7 @@ import logging
 from .cameras import CAMERAS
 from .core.video_processor import VideoProcessor
 from .alerts.alert_manager import alert_manager
+from .config import CAMERA_LOCATION, CAMERA_LAT, CAMERA_LNG
 
 log = logging.getLogger("argus.runner")
 
@@ -47,34 +48,37 @@ def _make_alert_callback(camera_id: str):
 # ─────────────────────────────────────────────
 
 def _make_cluster_callback(camera_id: str):
-    """Triggered by VideoProcessor when a fight cluster is detected.
-    Re-uses the existing alert_manager so clusters appear in the same
-    operator feed as per-person alerts.
     """
-    cam = CAMERAS[camera_id]
+    Returns a callback the VideoProcessor invokes when a fight cluster
+    is detected. Only REVIEW and CRITICAL clusters get saved/forwarded —
+    MONITOR is too noisy for evidence capture.
+    """
+    async def _on_cluster(cluster, frame_b64: str | None):
+        # Skip MONITOR-level — too frequent, used only for live overlay
+        if cluster.alert_level not in ("REVIEW", "CRITICAL"):
+            return
 
-    async def on_cluster(cluster, frame):
-        b64 = VideoProcessor.encode_frame_b64(frame)
-        await alert_manager.handle(
-            # Use a synthetic negative ID so cluster alerts can't collide
-            # with real per-person track ids.
-            track_id=-1,
-            alert_level=cluster.alert_level,
-            confidence=cluster.intensity,
-            distress_flags={
-                "fight_cluster":  cluster.intensity,
-                "body_count":     cluster.body_count,
-                "avg_speed":      cluster.avg_speed,
-                "motion_energy":  cluster.motion_energy,
-            },
-            camera_id=cam.id,
-            location=cam.location,
-            latitude=cam.latitude,
-            longitude=cam.longitude,
-            frame_b64=b64,
-        )
+        try:
+            await alert_manager.handle(
+                track_id=-1,                                  # cluster, not a person
+                alert_level=cluster.alert_level,
+                confidence=cluster.intensity,
+                distress_flags={
+                    "fight_cluster":  cluster.intensity,
+                    "motion_energy":  cluster.motion_energy,
+                    "body_count":     cluster.body_count,
+                    "source":         cluster.source,
+                },
+                camera_id=camera_id,
+                location=CAMERA_LOCATION,
+                latitude=CAMERA_LAT,
+                longitude=CAMERA_LNG,
+                frame_b64=frame_b64,
+            )
+        except Exception as e:
+            print(f"[runner] cluster callback failed: {e}")
 
-    return on_cluster
+    return _on_cluster
 
 
 async def _run_safely(processor: VideoProcessor, on_alert, on_cluster,

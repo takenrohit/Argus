@@ -37,7 +37,7 @@ MEDIAPIPE_MIN_TRACK   = 0.5
 # Alert cooldown per person — don't fire the same alert repeatedly
 ALERT_COOLDOWN_SEC    = 10
 # NEW: Cooldown per spatial cell for cluster alerts
-CLUSTER_COOLDOWN_SEC  = 8
+CLUSTER_COOLDOWN_SEC  = 30
 
 # Colours for each alert level (BGR)
 LEVEL_COLOURS = {

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import EvidenceModal from './components/EvidenceModal';
+import AlertToaster from './components/AlertToaster';
 import DashboardPage from './app/page';
 import IncidentsPage from './app/incidents/page';
 import MapPage from './app/map/page';
@@ -272,6 +273,7 @@ function MainContent() {
       </main>
 
       <EvidenceModal incident={selectedIncident} onClose={() => setSelectedIncident(null)} onAction={handleAction} />
+      <AlertToaster />
     </div>
   );
 }
