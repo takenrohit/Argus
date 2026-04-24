@@ -1,4 +1,4 @@
-import { Shield, LayoutDashboard, Database, Bell, Activity, FileText, Settings, HelpCircle, User, Moon } from 'lucide-react';
+import { Shield, LayoutDashboard, Database, Bell, Activity, FileText, Settings, HelpCircle, User, Moon, Camera } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 import { useState } from 'react';
@@ -13,6 +13,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'cameras', label: 'Live Feeds', icon: Camera },
     { id: 'devices', label: 'Devices', icon: Database },
     { id: 'alerts', label: 'Alerts', icon: Bell },
     { id: 'incidents', label: 'Incidents', icon: FileText },

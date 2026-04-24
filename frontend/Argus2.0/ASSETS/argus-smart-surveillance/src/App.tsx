@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import EvidenceModal from './components/EvidenceModal';
+import CameraFeedModal from './components/CameraFeedModal';
 import DashboardPage from './app/page';
 import IncidentsPage from './app/incidents/page';
 import MapPage from './app/map/page';
@@ -28,6 +29,7 @@ function MainContent() {
   const [selectedStatuses, setSelectedStatuses] = useState<IncidentStatus[]>(allStatuses);
   const navigate = useNavigate();
   const location = useLocation();
+  const [cameraModalOpen, setCameraModalOpen] = useState(false);
 
   useEffect(() => {
     let isCancelled = false;
@@ -170,6 +172,10 @@ function MainContent() {
   }
 
   function handlePageChange(tab: string) {
+    if (tab === 'cameras') {
+      setCameraModalOpen(true);
+      return;
+    }
     navigate(`/${tab}`);
   }
 
@@ -272,6 +278,7 @@ function MainContent() {
       </main>
 
       <EvidenceModal incident={selectedIncident} onClose={() => setSelectedIncident(null)} onAction={handleAction} />
+      <CameraFeedModal isOpen={cameraModalOpen} onClose={() => setCameraModalOpen(false)} />
     </div>
   );
 }

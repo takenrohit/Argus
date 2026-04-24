@@ -28,7 +28,7 @@ CAMERAS: dict[str, Camera] = {
     "CAM-01": Camera(
         id="CAM-01",
         name="Hospital Entrance",
-        source=str(SAMPLE_VIDEO) if SAMPLE_VIDEO.exists() else 0,
+        source=0,
         location="AIIMS Delhi — Main Entrance",
         latitude=28.5672,
         longitude=77.2100,

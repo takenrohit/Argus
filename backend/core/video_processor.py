@@ -34,7 +34,7 @@ MEDIAPIPE_MIN_DETECT  = 0.5
 MEDIAPIPE_MIN_TRACK   = 0.5
 
 # Alert cooldown per person — don't fire the same alert repeatedly
-ALERT_COOLDOWN_SEC    = 10
+ALERT_COOLDOWN_SEC    = 60
 
 # Colours for each alert level (BGR)
 LEVEL_COLOURS = {

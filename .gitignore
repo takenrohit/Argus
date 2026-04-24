@@ -8,3 +8,5 @@ node_modules/
 dist/
 logs/
 *.pt
+evidence/
+.DS_Store

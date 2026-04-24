@@ -33,7 +33,8 @@ from ..api.websocket import manager as ws_manager
 #  CONFIG
 # ─────────────────────────────────────────────
 
-SMS_COOLDOWN_SEC = 60    # minimum seconds between SMS for the same person
+SMS_COOLDOWN_SEC        = 60    # minimum seconds between SMS for the same person
+CAMERA_ALERT_COOLDOWN_SEC = 30  # minimum seconds between incidents for the same camera
 
 
 # ─────────────────────────────────────────────
@@ -63,6 +64,9 @@ class AlertManager:
         # SMS throttle — track_id → last sent timestamp
         self._sms_last: dict[int, float] = {}
 
+        # Camera-level dedup — camera_id → last alert timestamp
+        self._camera_last_alert: dict[str, float] = {}
+
         print("[AlertManager] Ready")
 
     # ─────────────────────────────────────────
@@ -85,6 +89,16 @@ class AlertManager:
         Full pipeline for one distress event.
         Returns a result dict sent back to the caller (routes.py).
         """
+
+        # ── Camera-level deduplication ──
+        now = time.time()
+        last_cam_alert = self._camera_last_alert.get(camera_id, 0)
+        if now - last_cam_alert < CAMERA_ALERT_COOLDOWN_SEC:
+            return {
+                "status": "deduplicated",
+                "reason": f"Camera {camera_id} alert cooldown ({CAMERA_ALERT_COOLDOWN_SEC}s)",
+            }
+        self._camera_last_alert[camera_id] = now
 
         # ── Step 1: Gemini Vision confirmation ──
         gemini_result: GeminiResult = await self.gemini.validate(

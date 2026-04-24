@@ -13,15 +13,15 @@ from .yolo_tracker import TrackedPerson
 #  CONFIG
 # ─────────────────────────────────────────────
 
-ENCIRCLEMENT_RADIUS   = 180 # pixels — how close others must be to count
-ENCIRCLEMENT_MIN      = 2     # min people around target to trigger
-FOLLOW_MIN_MOVEMENT   = 5     # pixels — ignore stationary people for follow check
-FOLLOW_COS_THRESHOLD  = 0.85  # how similar movement directions must be
+ENCIRCLEMENT_RADIUS   = 150   # pixels — how close others must be to count
+ENCIRCLEMENT_MIN      = 3     # min people around target to trigger
+FOLLOW_MIN_MOVEMENT   = 12    # pixels — ignore stationary people for follow check
+FOLLOW_COS_THRESHOLD  = 0.90  # how similar movement directions must be
 FOLLOW_MIN_DIST       = 40    # follower can't be ON TOP of target
 FOLLOW_MAX_DIST       = 200   # follower can't be too far
-PANIC_SPEED_THRESHOLD = 50    # pixels/sec — above this = potential panic run
-COLLAPSE_SECONDS      = 1.5   # seconds still before collapse triggers
-COLLAPSE_ASPECT_RATIO = 1.2   # bbox width/height ratio for lying down
+PANIC_SPEED_THRESHOLD = 55    # pixels/sec — above this = potential panic run
+COLLAPSE_SECONDS      = 8     # seconds still before collapse triggers
+COLLAPSE_ASPECT_RATIO = 2.0   # bbox width/height ratio for truly lying down
 
 
 # ─────────────────────────────────────────────
@@ -196,28 +196,29 @@ class DistressEngine:
 
         score = 0.0
 
-        # Check: left wrist raised above left shoulder
+        # Check: left wrist raised above left shoulder (defensive/punch posture)
         if left_wrist[2] > 0.5 and left_shoulder[2] > 0.5:
-            if left_wrist[1] < left_shoulder[1]:   # Y axis is inverted in image space
+            if left_wrist[1] < left_shoulder[1] - 15:
                 score += 0.25
 
         # Check: right wrist raised above right shoulder
         if right_wrist[2] > 0.5 and right_shoulder[2] > 0.5:
-            if right_wrist[1] < right_shoulder[1]:
+            if right_wrist[1] < right_shoulder[1] - 15:
                 score += 0.25
 
-        # Check: wrists very close = grappling / grabbing
+        # Check: wrists close together = grappling / grabbing
         if left_wrist[2] > 0.5 and right_wrist[2] > 0.5:
             wrist_dist = np.sqrt(
                 (left_wrist[0] - right_wrist[0])**2 +
                 (left_wrist[1] - right_wrist[1])**2
             )
-            if wrist_dist < 80:
+            if wrist_dist < 65:
                 score += 0.3
 
-        # Check: fast movement adds to struggle score
-        if person.speed() > 15:
-            score += 0.4
+        # Check: rapid movement indicates a physical altercation
+        spd = person.speed()
+        if spd > 18:
+            score += min(0.4, (spd - 18) / 40.0 + 0.15)
 
         return round(min(score, 1.0), 2)
 
@@ -274,9 +275,13 @@ class DistressEngine:
         still_score = 1.0 if person.is_still(COLLAPSE_SECONDS) else 0.0
 
         aspect      = person.bbox_aspect_ratio()
-        pose_score  = min(aspect / 2.0, 1.0) if aspect > COLLAPSE_ASPECT_RATIO else 0.0
+        pose_score  = min((aspect - COLLAPSE_ASPECT_RATIO) / 1.5, 1.0) if aspect > COLLAPSE_ASPECT_RATIO else 0.0
 
-        combined = still_score * 0.5 + pose_score * 0.5
+        # Both conditions must be true — must be still AND lying flat
+        if still_score < 0.5 or pose_score < 0.3:
+            return 0.0
+
+        combined = still_score * 0.4 + pose_score * 0.6
         return round(combined, 2)
 
     # ─────────────────────────────────────────
@@ -295,14 +300,16 @@ class DistressEngine:
             for k, w in SIGNATURE_WEIGHTS.items()
         )
 
-        # Boost: a single very high flag shouldn't be washed out
+        # Boost: strong single signals should still escalate
         max_flag   = max(flags.values(), default=0.0)
-        confidence = max(weighted, max_flag * 0.95)
+        active_count = sum(1 for v in flags.values() if v > 0.3)
+        boost_mult = 0.90 if active_count >= 2 else 0.80
+        confidence = max(weighted, max_flag * boost_mult)
         confidence = round(min(confidence, 1.0), 3)
 
-        if confidence >= 0.65:
+        if confidence >= 0.70:
             level = "CRITICAL"
-        elif confidence >= 0.45:
+        elif confidence >= 0.50:
             level = "REVIEW"
         elif confidence >= 0.30:
             level = "MONITOR"
