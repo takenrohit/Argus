@@ -1,4 +1,4 @@
-🛡️ Argus — Real-Time Women Safety Analytics
+🛡️ Argus — Real-Time Public Safety Analytics
 Argus is an AI-powered real-time public safety surveillance system designed to detect distress situations from CCTV feeds and automatically alert authorities.
 
 Built during a 24-hour national-level hackathon.
