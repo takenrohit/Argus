@@ -13,14 +13,14 @@ from .yolo_tracker import TrackedPerson
 #  CONFIG
 # ─────────────────────────────────────────────
 
-ENCIRCLEMENT_RADIUS   = 120   # pixels — how close others must be to count
-ENCIRCLEMENT_MIN      = 3     # min people around target to trigger
+ENCIRCLEMENT_RADIUS   = 180 # pixels — how close others must be to count
+ENCIRCLEMENT_MIN      = 2     # min people around target to trigger
 FOLLOW_MIN_MOVEMENT   = 5     # pixels — ignore stationary people for follow check
 FOLLOW_COS_THRESHOLD  = 0.85  # how similar movement directions must be
 FOLLOW_MIN_DIST       = 40    # follower can't be ON TOP of target
 FOLLOW_MAX_DIST       = 200   # follower can't be too far
-PANIC_SPEED_THRESHOLD = 80    # pixels/sec — above this = potential panic run
-COLLAPSE_SECONDS      = 2.0   # seconds still before collapse triggers
+PANIC_SPEED_THRESHOLD = 50    # pixels/sec — above this = potential panic run
+COLLAPSE_SECONDS      = 1.5   # seconds still before collapse triggers
 COLLAPSE_ASPECT_RATIO = 1.2   # bbox width/height ratio for lying down
 
 
@@ -212,12 +212,12 @@ class DistressEngine:
                 (left_wrist[0] - right_wrist[0])**2 +
                 (left_wrist[1] - right_wrist[1])**2
             )
-            if wrist_dist < 40:
+            if wrist_dist < 80:
                 score += 0.3
 
         # Check: fast movement adds to struggle score
-        if person.speed() > 30:
-            score += 0.2
+        if person.speed() > 15:
+            score += 0.4
 
         return round(min(score, 1.0), 2)
 
@@ -297,14 +297,14 @@ class DistressEngine:
 
         # Boost: a single very high flag shouldn't be washed out
         max_flag   = max(flags.values(), default=0.0)
-        confidence = max(weighted, max_flag * 0.7)
+        confidence = max(weighted, max_flag * 0.95)
         confidence = round(min(confidence, 1.0), 3)
 
-        if confidence >= 0.80:
+        if confidence >= 0.65:
             level = "CRITICAL"
-        elif confidence >= 0.60:
+        elif confidence >= 0.45:
             level = "REVIEW"
-        elif confidence >= 0.50:
+        elif confidence >= 0.30:
             level = "MONITOR"
         else:
             level = "NONE"

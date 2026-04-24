@@ -36,7 +36,7 @@ CAMERAS: dict[str, Camera] = {
     "CAM-02": Camera(
         id="CAM-02",
         name="Operator Camera",
-        source=0,                 # laptop webcam
+        source=str(Path(__file__).resolve().parent / "sample_videos" / "incident2.mp4"),
         location="Hackathon Demo Booth",
         latitude=CAMERA_LAT or 28.6139,
         longitude=CAMERA_LNG or 77.2090,
