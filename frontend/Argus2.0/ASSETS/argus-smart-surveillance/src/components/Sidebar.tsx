@@ -42,7 +42,6 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     { id: 'incidents', label: 'Incidents', icon: FileText },
     { id: 'analytics', label: 'Analytics', icon: Activity },
     { id: 'reports', label: 'Reports', icon: Shield },
-    { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'help', label: 'Help', icon: HelpCircle },
   ];
 

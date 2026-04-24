@@ -12,6 +12,7 @@ import DevicesPage from './app/devices/page';
 import AlertsPage from './app/alerts/page';
 import HelpPage from './app/help/page';
 import AboutPage from './app/about/page';
+import ReportsPage from './app/reports/page';
 import HeroPage from './app/HeroPage';
 import LoadingPage from './app/LoadingPage';
 import type { BackendIncidentPayload, DashboardStats, Incident, IncidentSeverity, IncidentStatus } from './types';
@@ -255,22 +256,7 @@ function MainContent() {
             />
             <Route
               path="/reports"
-              element={
-                <div className="h-full w-full overflow-y-auto bg-brand-dark text-white p-8">
-                  <div className="max-w-5xl mx-auto">
-                    <h2 className="text-3xl font-semibold tracking-tight text-white/90">Operational Reports</h2>
-                    <p className="text-white/45 mt-2">Report export and evidence bundles can be added next. This screen is no longer shared with Devices, Alerts, or Help.</p>
-                  </div>
-                </div>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <div className="h-full w-full flex items-center justify-center text-white/20 uppercase tracking-[0.5em] font-mono text-xl">
-                  System Encryption Locked
-                </div>
-              }
+              element={<ReportsPage incidents={filteredIncidents} onSelect={setSelectedIncident} />}
             />
             <Route path="/help" element={<HelpPage incidents={filteredIncidents} onSelectIncident={setSelectedIncident} />} />
             <Route path="/about" element={<AboutPage />} />

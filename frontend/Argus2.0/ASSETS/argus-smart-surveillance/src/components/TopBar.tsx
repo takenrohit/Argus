@@ -99,7 +99,7 @@ export default function TopBar({
   }, [filtersOpen, onToggleFilters]);
 
   return (
-    <header className="h-16 bg-black/72 backdrop-blur-xl flex items-center justify-between px-7 z-40 sticky top-0 gap-6 shadow-[0_18px_40px_rgba(0,0,0,0.28)]">
+    <header className="h-16 bg-black/72 backdrop-blur-xl flex items-center justify-between px-7 z-[1000] sticky top-0 gap-6 shadow-[0_18px_40px_rgba(0,0,0,0.28)]">
       <div className="flex items-center min-w-[220px]">
         {isDashboard ? (
           <div className="flex items-center gap-8">
@@ -163,7 +163,7 @@ export default function TopBar({
         </button>
 
         {filtersOpen && (
-          <div className="absolute right-0 top-full mt-4 w-80 rounded-2xl bg-brand-surface shadow-2xl p-4 z-50">
+          <div className="absolute right-0 top-full mt-4 w-80 rounded-2xl bg-brand-surface shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] p-6 z-[1100] border border-white/10 ring-1 ring-white/5">
             <p className="text-xs uppercase tracking-[0.2em] text-white/40 mb-3">Severity</p>
             <div className="flex flex-wrap gap-2 mb-4">
               {severityOptions.map((severity) => {
