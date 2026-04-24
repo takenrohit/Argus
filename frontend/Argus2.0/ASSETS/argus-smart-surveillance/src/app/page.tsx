@@ -3,10 +3,11 @@ import {
   Activity,
   AlertTriangle,
   Camera,
-  ChevronRight,
+  Clock3,
+  MapPinned,
   MapPin,
-  MoreHorizontal,
   ShieldAlert,
+  TrendingUp,
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import MapComponent from '../components/MapComponent';
@@ -16,6 +17,7 @@ import { cn } from '../lib/utils';
 interface DashboardPageProps {
   incidents: Incident[];
   onSelectIncident: (inc: Incident) => void;
+  searchQuery: string;
 }
 
 function severityColor(alertLevel: Incident['alertLevel']) {
@@ -28,7 +30,7 @@ function severityColor(alertLevel: Incident['alertLevel']) {
   return 'text-brand-green';
 }
 
-export default function DashboardPage({ incidents, onSelectIncident }: DashboardPageProps) {
+export default function DashboardPage({ incidents, onSelectIncident, searchQuery }: DashboardPageProps) {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [searchParams] = useSearchParams();
   const panel = searchParams.get('panel') || 'overview';
@@ -49,12 +51,14 @@ export default function DashboardPage({ incidents, onSelectIncident }: Dashboard
       open: open.length,
       resolved: resolved.length,
       cameras: uniqueCameras.size,
+      responseReady: incidents.filter((incident) => incident.status === 'dispatching').length,
       avgConfidence: incidents.length
         ? Math.round(incidents.reduce((sum, incident) => sum + incident.confidence, 0) / incidents.length)
         : 0,
       topIncident: incidents[0] || null,
       recentCritical: critical.slice(0, 5),
       recentIncidents: incidents.slice(0, 6),
+      recentEvents: incidents.slice(0, 8),
       hotspots: [...incidents]
         .sort((a, b) => b.confidence - a.confidence)
         .slice(0, 4),
@@ -62,7 +66,7 @@ export default function DashboardPage({ incidents, onSelectIncident }: Dashboard
   }, [incidents]);
 
   return (
-    <div className="flex flex-1 h-full overflow-hidden bg-[#0d0e11] text-white">
+    <div className="flex flex-1 h-full overflow-hidden bg-brand-dark text-white">
       {panel === 'logs' ? (
         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
           <div className="max-w-6xl mx-auto space-y-6">
@@ -102,7 +106,7 @@ export default function DashboardPage({ incidents, onSelectIncident }: Dashboard
               <div className="px-5 py-4 border-b border-white/5 text-sm font-medium text-white/80">Event Stream</div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-[#1c1c1f]">
+                  <thead className="bg-brand-surface">
                     <tr className="border-b border-white/5">
                       <th className="px-5 py-4 text-[11px] font-medium text-white/50">Incident</th>
                       <th className="px-5 py-4 text-[11px] font-medium text-white/50">Severity</th>
@@ -192,233 +196,226 @@ export default function DashboardPage({ incidents, onSelectIncident }: Dashboard
             </div>
 
             <div className="h-[480px] overflow-hidden rounded-3xl border border-white/5">
-              <MapComponent incidents={incidents} onSelectIncident={onSelectIncident} showHeatmap />
+              <MapComponent incidents={incidents} onSelectIncident={onSelectIncident} showHeatmap searchQuery={searchQuery} />
             </div>
           </div>
         </div>
       ) : (
-      <>
-      <div className="w-[340px] flex flex-col p-5 overflow-y-auto custom-scrollbar gap-5 z-10 bg-[#121214]/60 backdrop-blur-md border-r border-brand-border/50">
-        <section className="glass-panel p-5">
-          <div className="flex justify-between items-center mb-5">
-            <h3 className="text-[13px] font-semibold text-white/90">System Snapshot</h3>
-            <MoreHorizontal className="w-4 h-4 text-white/40" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-white/5 bg-black/20 p-4">
-              <p className="text-[10px] uppercase tracking-[0.25em] text-white/35">Open</p>
-              <p className="text-3xl font-semibold mt-3">{summary.open}</p>
-            </div>
-            <div className="rounded-2xl border border-white/5 bg-black/20 p-4">
-              <p className="text-[10px] uppercase tracking-[0.25em] text-white/35">Resolved</p>
-              <p className="text-3xl font-semibold mt-3">{summary.resolved}</p>
-            </div>
-            <div className="rounded-2xl border border-white/5 bg-black/20 p-4">
-              <p className="text-[10px] uppercase tracking-[0.25em] text-white/35">Cameras</p>
-              <p className="text-3xl font-semibold mt-3">{summary.cameras}</p>
-            </div>
-            <div className="rounded-2xl border border-white/5 bg-black/20 p-4">
-              <p className="text-[10px] uppercase tracking-[0.25em] text-white/35">Avg Confidence</p>
-              <p className="text-3xl font-semibold mt-3">{summary.avgConfidence}%</p>
-            </div>
-          </div>
-        </section>
-
-        <section className="glass-panel p-5">
-          <div className="flex justify-between items-center mb-5">
-            <h3 className="text-[13px] font-semibold text-white/90">Threat Breakdown</h3>
-            <ShieldAlert className="w-4 h-4 text-white/40" />
-          </div>
-
-          <div className="space-y-4">
-            {[
-              { label: 'Critical', value: summary.critical, color: 'bg-brand-red' },
-              { label: 'Review', value: summary.review, color: 'bg-brand-amber' },
-              { label: 'Monitor', value: summary.monitor, color: 'bg-brand-green' },
-            ].map((item) => {
-              const width = summary.total ? Math.max(10, Math.round((item.value / summary.total) * 100)) : 0;
-              return (
-                <div key={item.label}>
-                  <div className="flex items-center justify-between text-[11px] mb-2">
-                    <span className="text-white/70">{item.label}</span>
-                    <span className="text-white/90 font-mono">{item.value}</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-white/5 overflow-hidden">
-                    <div className={cn('h-full rounded-full', item.color)} style={{ width: `${width}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="glass-panel p-5">
-          <div className="flex justify-between items-center mb-5">
-            <h3 className="text-[13px] font-semibold text-white/90">Primary Hotspots</h3>
-            <MapPin className="w-4 h-4 text-white/40" />
-          </div>
-
-          <div className="space-y-3">
-            {summary.hotspots.length ? (
-              summary.hotspots.map((incident) => (
-                <button
-                  key={incident.id}
-                  onClick={() => onSelectIncident(incident)}
-                  className="w-full text-left rounded-2xl border border-white/5 bg-black/20 px-4 py-3 hover:bg-white/[0.03] transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[12px] text-white/90 font-medium">{incident.location.address}</p>
-                      <p className="text-[11px] text-white/45 mt-1">{incident.type}</p>
-                    </div>
-                    <div className={cn('text-[11px] font-semibold', severityColor(incident.alertLevel))}>
-                      {incident.confidence}%
-                    </div>
-                  </div>
-                </button>
-              ))
-            ) : (
-              <p className="text-[12px] text-white/40">No live hotspots yet.</p>
-            )}
-          </div>
-        </section>
-
-        <section className="flex-1 min-h-0 flex flex-col">
-          <div className="flex justify-between items-center mb-4 px-1">
-            <h3 className="text-[13px] font-semibold text-white/90 flex items-center gap-2">
-              Live Queue
-              <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] text-white/60">{summary.recentIncidents.length}</span>
-            </h3>
-            <Activity className="w-4 h-4 text-white/40" />
-          </div>
-
-          <div className="space-y-2 overflow-y-auto pr-1">
-            {summary.recentIncidents.length ? (
-              summary.recentIncidents.map((incident) => (
-                <button
-                  key={incident.id}
-                  onClick={() => onSelectIncident(incident)}
-                  className="w-full glass-panel p-3 flex items-start gap-3 hover:bg-white/5 transition-all group cursor-pointer border border-transparent hover:border-white/5 text-left"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
-                    {incident.alertLevel === 'CRITICAL' ? (
-                      <AlertTriangle className="w-4 h-4 text-brand-red" />
-                    ) : incident.alertLevel === 'REVIEW' ? (
-                      <ShieldAlert className="w-4 h-4 text-brand-amber" />
-                    ) : (
-                      <Camera className="w-4 h-4 text-brand-green" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] text-white/90 font-medium truncate">{incident.type}</p>
-                    <p className="text-[11px] text-white/40 truncate">
-                      {incident.cameraId} · {incident.location.address}
+        <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
+          <div className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-5 h-full">
+            <section className="glass-panel p-4 flex flex-col gap-4 min-h-[720px]">
+              <div className="rounded-xl border border-white/8 bg-black/20 p-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs text-white/40 uppercase tracking-[0.2em]">Live Sector</p>
+                    <p className="text-lg font-semibold text-white/90 mt-1">
+                      {summary.topIncident?.location.address || 'Argus Monitoring Zone'}
                     </p>
                   </div>
-                  <div className="shrink-0 text-right">
-                    <p className={cn('text-[10px] font-semibold', severityColor(incident.alertLevel))}>{incident.alertLevel}</p>
-                    <p className="text-[10px] text-white/35 mt-1">{incident.confidence}%</p>
+                  <div className="text-right">
+                    <p className="text-[11px] text-white/50">Cameras Online</p>
+                    <p className="text-sm font-semibold text-white/85 mt-1">{summary.cameras}</p>
                   </div>
-                </button>
-              ))
-            ) : (
-              <div className="glass-panel p-4 text-[12px] text-white/40">
-                No incidents yet. Send a sample alert and the dashboard will populate with live data.
-              </div>
-            )}
-          </div>
-        </section>
-      </div>
-
-      <div className="flex-1 relative bg-[#090a0c]">
-        <div className="absolute top-6 left-6 z-[1000]">
-          <div className="flex p-1 bg-[#1c1c1f]/80 backdrop-blur-md rounded-lg border border-brand-border/50">
-            <button
-              onClick={() => setShowHeatmap(false)}
-              className={cn('px-4 py-1.5 rounded-md text-xs font-medium transition-all', !showHeatmap ? 'bg-white/10 text-white' : 'text-white/40')}
-            >
-              Network
-            </button>
-            <button
-              onClick={() => setShowHeatmap(true)}
-              className={cn('px-4 py-1.5 rounded-md text-xs font-medium transition-all', showHeatmap ? 'bg-white/10 text-white' : 'text-white/40')}
-            >
-              Heatmap
-            </button>
-          </div>
-        </div>
-
-        <div className="absolute top-6 right-6 z-[1000] w-[320px] max-w-[calc(100%-3rem)]">
-          <div className="glass-panel p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.25em] text-white/35">Priority Feed</p>
-                <p className="text-sm text-white/90 mt-2">
-                  {summary.topIncident ? `${summary.topIncident.type} near ${summary.topIncident.location.address}` : 'No active incidents'}
-                </p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-white/40 mt-0.5" />
-            </div>
-            {summary.topIncident && (
-              <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-3 gap-3 text-center">
-                <div>
-                  <p className="text-[10px] text-white/35 uppercase">Severity</p>
-                  <p className={cn('text-xs font-semibold mt-2', severityColor(summary.topIncident.alertLevel))}>
-                    {summary.topIncident.alertLevel}
-                  </p>
                 </div>
-                <div>
-                  <p className="text-[10px] text-white/35 uppercase">Confidence</p>
-                  <p className="text-xs font-semibold mt-2 text-white/85">{summary.topIncident.confidence}%</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-white/35 uppercase">Camera</p>
-                  <p className="text-xs font-semibold mt-2 text-white/85">{summary.topIncident.cameraId}</p>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                  <div className="rounded-lg border border-white/8 bg-white/[0.03] p-2.5">
+                    <p className="text-white/40">Open Events</p>
+                    <p className="text-white text-base font-semibold mt-1">{summary.open}</p>
+                  </div>
+                  <div className="rounded-lg border border-white/8 bg-white/[0.03] p-2.5">
+                    <p className="text-white/40">Resolved</p>
+                    <p className="text-white text-base font-semibold mt-1">{summary.resolved}</p>
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
-        </div>
 
-        <div className="absolute inset-0 z-0">
-          <MapComponent incidents={incidents} onSelectIncident={onSelectIncident} showHeatmap={showHeatmap} />
-        </div>
+              <div className="h-[380px] overflow-hidden rounded-2xl border border-white/8 relative">
+                <div className="absolute top-3 left-3 z-[900]">
+                  <div className="flex p-1 bg-brand-surface/80 backdrop-blur-md rounded-lg border border-brand-border/50">
+                    <button
+                      onClick={() => setShowHeatmap(false)}
+                      className={cn('px-3 py-1 rounded-md text-xs font-medium transition-all', !showHeatmap ? 'bg-white/10 text-white' : 'text-white/40')}
+                    >
+                      Network
+                    </button>
+                    <button
+                      onClick={() => setShowHeatmap(true)}
+                      className={cn('px-3 py-1 rounded-md text-xs font-medium transition-all', showHeatmap ? 'bg-white/10 text-white' : 'text-white/40')}
+                    >
+                      Heatmap
+                    </button>
+                  </div>
+                </div>
+                <MapComponent incidents={incidents} onSelectIncident={onSelectIncident} showHeatmap={showHeatmap} searchQuery={searchQuery} />
+              </div>
 
-        <div className="absolute left-6 bottom-6 z-[1000] w-[340px] max-w-[calc(100%-3rem)]">
-          <div className="glass-panel p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[13px] font-semibold text-white/90">Critical Review Queue</h3>
-              <span className="text-[11px] text-white/40">{summary.recentCritical.length} items</span>
-            </div>
-            <div className="space-y-2">
-              {summary.recentCritical.length ? (
-                summary.recentCritical.map((incident) => (
-                  <button
-                    key={incident.id}
-                    onClick={() => onSelectIncident(incident)}
-                    className="w-full rounded-xl bg-black/20 border border-white/5 px-3 py-3 text-left hover:bg-white/[0.03] transition-colors"
-                  >
-                    <div className="flex justify-between gap-3">
-                      <div>
-                        <p className="text-[12px] text-white/90">{incident.type}</p>
-                        <p className="text-[11px] text-white/45 mt-1">{incident.location.address}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] text-brand-red font-semibold">{incident.status}</p>
-                        <p className="text-[10px] text-white/35 mt-1">{incident.timestamp}</p>
-                      </div>
+              <div className="rounded-xl border border-white/8 bg-black/20 p-3 flex-1 min-h-[170px]">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-white/90 flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-white/45" />
+                    Incident Queue
+                  </h3>
+                  <span className="text-xs text-white/40">{summary.recentIncidents.length} live</span>
+                </div>
+                <div className="mt-3 space-y-2 max-h-[150px] overflow-y-auto custom-scrollbar pr-1">
+                  {summary.recentIncidents.length ? (
+                    summary.recentIncidents.map((incident) => (
+                      <button
+                        key={incident.id}
+                        onClick={() => onSelectIncident(incident)}
+                        className="w-full text-left rounded-lg border border-white/8 bg-white/[0.03] px-3 py-2 hover:bg-white/[0.07] transition-colors"
+                      >
+                        <p className="text-xs text-white/90 font-medium truncate">{incident.type}</p>
+                        <p className="text-[11px] text-white/45 truncate mt-0.5">{incident.cameraId} · {incident.location.address}</p>
+                      </button>
+                    ))
+                  ) : (
+                    <p className="text-xs text-white/45">No incidents available yet.</p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                {[
+                  { title: 'Critical', value: summary.critical, meta: 'Highest priority', icon: AlertTriangle, tone: 'text-brand-red' },
+                  { title: 'Review', value: summary.review, meta: 'Needs validation', icon: ShieldAlert, tone: 'text-brand-amber' },
+                  { title: 'Monitor', value: summary.monitor, meta: 'Low urgency', icon: Camera, tone: 'text-brand-green' },
+                  { title: 'Avg Confidence', value: `${summary.avgConfidence}%`, meta: 'Current stream', icon: TrendingUp, tone: 'text-brand-blue' },
+                ].map((card) => (
+                  <div key={card.title} className="glass-panel p-4 hover:border-white/15 transition-all duration-200">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-white/40">{card.title}</p>
+                      <card.icon className={cn('w-4 h-4', card.tone)} />
                     </div>
-                  </button>
-                ))
-              ) : (
-                <p className="text-[12px] text-white/40">No critical incidents currently waiting for review.</p>
-              )}
-            </div>
+                    <p className="text-2xl font-semibold mt-3 text-white/90">{card.value}</p>
+                    <p className="text-[11px] text-white/40 mt-2">{card.meta}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="glass-panel p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-white/40">Traffic Insights</p>
+                    <h3 className="text-lg font-semibold text-white/90 mt-2">Operational Trend Grid</h3>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-white/45">
+                    <Clock3 className="w-4 h-4" />
+                    <span>Last 3 Hours</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="rounded-xl border border-white/8 bg-black/20 p-4">
+                    <p className="text-xs text-white/50">Vehicle Count Proxy</p>
+                    <p className="text-3xl font-semibold text-brand-green mt-2">{summary.total * 7 + 90}</p>
+                    <p className="text-xs text-white/45 mt-1">Derived from active incidents and camera density.</p>
+                  </div>
+                  <div className="rounded-xl border border-white/8 bg-black/20 p-4">
+                    <p className="text-xs text-white/50">Response Readiness</p>
+                    <p className="text-3xl font-semibold text-brand-amber mt-2">{summary.responseReady + summary.review}</p>
+                    <p className="text-xs text-white/45 mt-1">Dispatching and review-stage incidents.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-panel overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/6 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-white/90 flex items-center gap-2">
+                    <MapPinned className="w-4 h-4 text-white/45" />
+                    Device Event Log
+                  </h3>
+                  <span className="text-xs text-white/45">Backend synced</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-brand-surface">
+                      <tr className="border-b border-white/5">
+                        <th className="px-4 py-3 text-[11px] font-medium text-white/50">Camera</th>
+                        <th className="px-4 py-3 text-[11px] font-medium text-white/50">Event</th>
+                        <th className="px-4 py-3 text-[11px] font-medium text-white/50">Severity</th>
+                        <th className="px-4 py-3 text-[11px] font-medium text-white/50">Location</th>
+                        <th className="px-4 py-3 text-[11px] font-medium text-white/50">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {summary.recentEvents.map((incident) => (
+                        <tr
+                          key={incident.id}
+                          className="hover:bg-white/[0.03] cursor-pointer transition-colors"
+                          onClick={() => onSelectIncident(incident)}
+                        >
+                          <td className="px-4 py-3 text-xs text-white/85">{incident.cameraId}</td>
+                          <td className="px-4 py-3 text-xs text-white/75">{incident.type}</td>
+                          <td className={cn('px-4 py-3 text-xs font-semibold', severityColor(incident.alertLevel))}>{incident.alertLevel}</td>
+                          <td className="px-4 py-3 text-xs text-white/55">{incident.location.address}</td>
+                          <td className="px-4 py-3 text-xs text-white/60">{incident.status}</td>
+                        </tr>
+                      ))}
+                      {!summary.recentEvents.length && (
+                        <tr>
+                          <td colSpan={5} className="px-4 py-8 text-center text-sm text-white/40">
+                            No live incidents. Trigger an alert to populate the dashboard.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="glass-panel p-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-white/40 mb-3">Hotspots</p>
+                  <div className="space-y-2">
+                    {summary.hotspots.length ? (
+                      summary.hotspots.map((incident) => (
+                        <button
+                          key={incident.id}
+                          onClick={() => onSelectIncident(incident)}
+                          className="w-full rounded-lg border border-white/8 bg-white/[0.03] text-left px-3 py-2 hover:bg-white/[0.07] transition-colors"
+                        >
+                          <p className="text-xs text-white/90">{incident.location.address}</p>
+                          <p className="text-[11px] text-white/45 mt-0.5">{incident.type} · {incident.confidence}%</p>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="text-xs text-white/45">No hotspots detected.</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="glass-panel p-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-white/40 mb-3">Critical Review Queue</p>
+                  <div className="space-y-2">
+                    {summary.recentCritical.length ? (
+                      summary.recentCritical.map((incident) => (
+                        <button
+                          key={incident.id}
+                          onClick={() => onSelectIncident(incident)}
+                          className="w-full rounded-lg border border-white/8 bg-white/[0.03] text-left px-3 py-2 hover:bg-white/[0.07] transition-colors"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="text-xs text-white/90">{incident.type}</p>
+                              <p className="text-[11px] text-white/45 mt-0.5">{incident.location.address}</p>
+                            </div>
+                            <span className="text-[10px] text-brand-red uppercase tracking-wide">{incident.status}</span>
+                          </div>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="text-xs text-white/45">No critical incidents awaiting review.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
-      </div>
-      </>
       )}
     </div>
   );

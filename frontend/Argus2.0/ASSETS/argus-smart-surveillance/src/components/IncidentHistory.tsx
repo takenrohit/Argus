@@ -16,14 +16,14 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
   );
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto bg-[#0d0e11] custom-scrollbar flex flex-col gap-6">
+    <div className="flex-1 p-6 overflow-y-auto bg-brand-dark custom-scrollbar flex flex-col gap-6">
       
       {/* Top Header / Tabs */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold tracking-tight text-white/90">Incident History & Management</h2>
         
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-[#1c1c1f]/80 backdrop-blur-md rounded-xl p-1 border border-brand-border/50">
+          <div className="flex items-center bg-brand-surface/80 backdrop-blur-md rounded-xl p-1 border border-brand-border/50">
              {['Overview', 'Active Incidents', 'History', 'Reports', 'Configuration'].map((tab, i) => (
                 <button 
                   key={tab} 
@@ -36,7 +36,7 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
                 </button>
              ))}
           </div>
-          <button className="px-4 py-1.5 rounded-xl text-xs font-medium bg-[#1c1c1f]/80 backdrop-blur-md border border-brand-border/50 text-white/60 hover:text-white transition-colors flex items-center gap-2">
+          <button className="px-4 py-1.5 rounded-xl text-xs font-medium bg-brand-surface/80 backdrop-blur-md border border-brand-border/50 text-white/60 hover:text-white transition-colors flex items-center gap-2">
              <Settings className="w-3.5 h-3.5" />
              Argus Workspace
           </button>
@@ -91,7 +91,7 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
                   <div className="relative w-[100px] h-[100px]">
                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                         <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
-                        <circle cx="50" cy="50" r="42" fill="none" stroke="#ff4d4f" strokeWidth="10" strokeDasharray="263" strokeDashoffset="144" strokeLinecap="round" className="drop-shadow-[0_0_8px_rgba(255,77,79,0.8)]" />
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#35858e" strokeWidth="10" strokeDasharray="263" strokeDashoffset="144" strokeLinecap="round" className="drop-shadow-[0_0_8px_rgba(53,133,142,0.8)]" />
                      </svg>
                      <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <p className="text-[18px] font-bold text-white/90">45%</p>
@@ -146,7 +146,7 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
                <h3 className="text-[14px] font-semibold text-white/90">Incident History Log</h3>
                
                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-3 bg-[#121214] px-3 py-1.5 rounded-lg border border-white/5 text-[11px] text-white/60">
+                  <div className="flex items-center gap-3 bg-brand-dark px-3 py-1.5 rounded-lg border border-white/5 text-[11px] text-white/60">
                      Timeframe <span className="text-white/90">Status (All Days)</span>
                      <div className="w-px h-3 bg-white/10 mx-1" />
                      Status <span className="text-white/90">Status (All)</span>
@@ -161,7 +161,7 @@ export default function IncidentHistory({ incidents, onSelect }: IncidentHistory
 
             <div className="flex-1 overflow-y-auto custom-scrollbar">
                <table className="w-full text-left border-collapse">
-                  <thead className="sticky top-0 z-10 bg-[#1c1c1f] shadow-sm">
+                  <thead className="sticky top-0 z-10 bg-brand-surface shadow-sm">
                      <tr className="border-b border-white/5">
                         <th className="px-6 py-4 text-[11px] font-medium text-white/50">Node/Device/System</th>
                         <th className="px-6 py-4 text-[11px] font-medium text-white/50">Title</th>

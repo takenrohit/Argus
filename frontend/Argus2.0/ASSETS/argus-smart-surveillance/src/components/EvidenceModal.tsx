@@ -27,7 +27,7 @@ export default function EvidenceModal({ incident, onClose, onAction }: EvidenceM
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 50 }}
-          className="relative w-full max-w-7xl mx-auto my-auto h-[85vh] bg-[#0d0e11]/90 backdrop-blur-xl border border-brand-border/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+          className="relative w-full max-w-7xl mx-auto my-auto h-[85vh] bg-brand-dark/90 backdrop-blur-xl border border-brand-border/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
         >
           {/* Header */}
           <div className="h-14 border-b border-white/5 flex items-center px-6 relative bg-white/[0.02]">
@@ -76,7 +76,7 @@ export default function EvidenceModal({ incident, onClose, onAction }: EvidenceM
                      <p className="text-[11px] text-white/60 mb-2 flex justify-between">
                         Devices <MoreHorizontal className="w-4 h-4" />
                      </p>
-                     <button className="w-full bg-[#121214] border border-white/10 rounded-lg p-2 flex items-center justify-between text-xs text-white/60 hover:border-white/20">
+                     <button className="w-full bg-brand-dark border border-white/10 rounded-lg p-2 flex items-center justify-between text-xs text-white/60 hover:border-white/20">
                         <div className="flex items-center gap-2">
                            <div className="w-2 h-2 bg-brand-green rounded-sm" /> {incident.location.address}
                         </div>
@@ -205,7 +205,7 @@ export default function EvidenceModal({ incident, onClose, onAction }: EvidenceM
                <div className="glass-panel p-5 flex-1 flex flex-col min-h-0">
                   <p className="text-[11px] text-white/60 mb-2">System Logs (Filtered)</p>
                   <p className="text-[10px] text-white/40 mb-2">Attached Logs (Filtered)</p>
-                  <div className="flex-1 bg-[#121214] border border-white/5 rounded-lg p-3 overflow-y-auto custom-scrollbar font-mono text-[10px] text-white/70 space-y-1">
+                  <div className="flex-1 bg-brand-dark border border-white/5 rounded-lg p-3 overflow-y-auto custom-scrollbar font-mono text-[10px] text-white/70 space-y-1">
                      <p>{incident.timestamp}</p>
                      <p><span className="text-brand-green">[{incident.alertLevel}]</span> Incident type: {incident.type}</p>
                      <p className="text-white/40">Camera: {incident.cameraId}</p>

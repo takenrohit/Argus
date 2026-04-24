@@ -10,7 +10,7 @@ export default function HelpPage({ incidents, onSelectIncident }: HelpPageProps)
   const featuredIncident = incidents[0] || null;
 
   return (
-    <div className="h-full overflow-y-auto p-6 custom-scrollbar bg-[#0d0e11] text-white">
+    <div className="h-full overflow-y-auto p-6 custom-scrollbar bg-brand-dark text-white">
       <div className="max-w-5xl mx-auto space-y-6">
         <div>
           <h2 className="text-2xl font-semibold text-white/90">Operator Help Center</h2>

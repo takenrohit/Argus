@@ -5,14 +5,14 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  --color-brand-red: #ff4d4f;
-  --color-brand-amber: #ffaa00;
-  --color-brand-green: #2ecc71;
-  --color-brand-blue: #00bfff;
-  --color-brand-dark: #121214;
-  --color-brand-surface: #1c1c1f;
-  --color-brand-surface-light: #2a2a2e;
-  --color-brand-border: rgba(255, 255, 255, 0.05);
+  --color-brand-red: #35858e;
+  --color-brand-amber: #7da78c;
+  --color-brand-green: #c2d099;
+  --color-brand-blue: #e6eec9;
+  --color-brand-dark: #35858e;
+  --color-brand-surface: #7da78c;
+  --color-brand-surface-light: #c2d099;
+  --color-brand-border: rgba(230, 238, 201, 0.35);
 }
 
 @layer base {
@@ -27,7 +27,7 @@
   }
   
   .glass-panel {
-    @apply bg-[#1a1b1e]/80 backdrop-blur-md border border-brand-border rounded-2xl;
+    @apply bg-brand-surface/80 backdrop-blur-md border border-brand-border rounded-2xl;
   }
   
   .glow-red { @apply shadow-[0_0_15px_rgba(255,77,79,0.2)]; }
@@ -38,7 +38,7 @@
 
 .leaflet-container {
   @apply w-full h-full overflow-hidden;
-  background-color: #0d0e11 !important;
+  background-color: #35858e !important;
 }
 
 .leaflet-layer,

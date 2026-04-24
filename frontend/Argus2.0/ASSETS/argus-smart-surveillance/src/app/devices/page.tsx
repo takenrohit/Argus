@@ -5,13 +5,14 @@ import MapComponent from '../../components/MapComponent';
 interface DevicesPageProps {
   incidents: Incident[];
   onSelectIncident: (incident: Incident) => void;
+  searchQuery: string;
 }
 
-export default function DevicesPage({ incidents, onSelectIncident }: DevicesPageProps) {
+export default function DevicesPage({ incidents, onSelectIncident, searchQuery }: DevicesPageProps) {
   const devices = Array.from(new Map(incidents.map((incident) => [incident.cameraId, incident])).values());
 
   return (
-    <div className="h-full overflow-y-auto p-6 custom-scrollbar bg-[#0d0e11] text-white">
+    <div className="h-full overflow-y-auto p-6 custom-scrollbar bg-brand-dark text-white">
       <div className="max-w-6xl mx-auto space-y-6">
         <div>
           <h2 className="text-2xl font-semibold text-white/90">Device Network</h2>
@@ -94,7 +95,7 @@ export default function DevicesPage({ incidents, onSelectIncident }: DevicesPage
             </div>
 
             <div className="h-[320px] overflow-hidden rounded-3xl border border-white/5">
-              <MapComponent incidents={incidents} onSelectIncident={onSelectIncident} showHeatmap={false} />
+              <MapComponent incidents={incidents} onSelectIncident={onSelectIncident} showHeatmap={false} searchQuery={searchQuery} />
             </div>
           </div>
         </div>

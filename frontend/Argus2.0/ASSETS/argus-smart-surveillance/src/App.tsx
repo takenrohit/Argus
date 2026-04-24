@@ -12,14 +12,20 @@ import AlertsPage from './app/alerts/page';
 import HelpPage from './app/help/page';
 import HeroPage from './app/HeroPage';
 import LoadingPage from './app/LoadingPage';
-import type { BackendIncidentPayload, DashboardStats, Incident } from './types';
+import type { BackendIncidentPayload, DashboardStats, Incident, IncidentSeverity, IncidentStatus } from './types';
 import { buildAlertsWebSocketUrl, fetchIncidents, fetchStats, normalizeIncident, updateIncidentStatus } from './lib/api';
 
 function MainContent() {
+  const allSeverities: IncidentSeverity[] = ['CRITICAL', 'REVIEW', 'MONITOR', 'SYSTEM'];
+  const allStatuses: IncidentStatus[] = ['active', 'reviewing', 'dispatching', 'resolved', 'dismissed'];
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [backendNote, setBackendNote] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selectedSeverities, setSelectedSeverities] = useState<IncidentSeverity[]>(allSeverities);
+  const [selectedStatuses, setSelectedStatuses] = useState<IncidentStatus[]>(allStatuses);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -103,11 +109,33 @@ function MainContent() {
   }, []);
 
   const activeTab = location.pathname.split('/')[1] || 'dashboard';
+  const filteredIncidents = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return incidents.filter((incident) => {
+      const matchesSeverity = selectedSeverities.includes(incident.alertLevel);
+      const matchesStatus = selectedStatuses.includes(incident.status);
+      if (!matchesSeverity || !matchesStatus) {
+        return false;
+      }
+
+      if (!query) {
+        return true;
+      }
+
+      return (
+        incident.type.toLowerCase().includes(query) ||
+        incident.cameraId.toLowerCase().includes(query) ||
+        incident.location.address.toLowerCase().includes(query)
+      );
+    });
+  }, [incidents, searchQuery, selectedSeverities, selectedStatuses]);
 
   const criticalAlert = useMemo(
     () =>
-      incidents.find((incident) => incident.alertLevel === 'CRITICAL' && incident.status !== 'resolved' && incident.status !== 'dismissed') || null,
-    [incidents]
+      filteredIncidents.find(
+        (incident) => incident.alertLevel === 'CRITICAL' && incident.status !== 'resolved' && incident.status !== 'dismissed'
+      ) || null,
+    [filteredIncidents]
   );
 
   async function handleAction(id: string, action: 'dispatch' | 'dismiss' | 'escalate') {
@@ -145,15 +173,53 @@ function MainContent() {
     navigate(`/${tab}`);
   }
 
+  function handleToggleSeverity(severity: IncidentSeverity) {
+    setSelectedSeverities((current) =>
+      current.includes(severity) ? current.filter((item) => item !== severity) : [...current, severity]
+    );
+  }
+
+  function handleToggleStatus(status: IncidentStatus) {
+    setSelectedStatuses((current) =>
+      current.includes(status) ? current.filter((item) => item !== status) : [...current, status]
+    );
+  }
+
+  function handleClearAll() {
+    setSearchQuery('');
+    setSelectedSeverities(allSeverities);
+    setSelectedStatuses(allStatuses);
+    setFiltersOpen(false);
+  }
+
+  function handleSetupView() {
+    navigate('/dashboard?panel=overview');
+    setSearchQuery('');
+    setSelectedSeverities(['CRITICAL', 'REVIEW']);
+    setSelectedStatuses(['active', 'reviewing', 'dispatching']);
+    setFiltersOpen(false);
+  }
+
   return (
-    <div className="flex h-screen bg-[#0d0e11] overflow-hidden font-sans">
+    <div className="flex h-screen bg-brand-dark overflow-hidden font-sans">
       <Sidebar activeTab={activeTab} setActiveTab={handlePageChange} />
 
       <main className="flex-1 flex flex-col min-w-0 relative h-full">
-        <TopBar />
+        <TopBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          filtersOpen={filtersOpen}
+          onToggleFilters={() => setFiltersOpen((open) => !open)}
+          onClearAll={handleClearAll}
+          onSetupView={handleSetupView}
+          selectedSeverities={selectedSeverities}
+          selectedStatuses={selectedStatuses}
+          onToggleSeverity={handleToggleSeverity}
+          onToggleStatus={handleToggleStatus}
+        />
 
         {(backendNote || criticalAlert || stats) && (
-          <div className="px-6 py-3 border-b border-white/5 bg-[#121214]/70 text-xs text-white/60 flex flex-wrap items-center gap-4">
+          <div className="px-6 py-3 border-b border-white/5 bg-brand-dark/70 text-xs text-white/60 flex flex-wrap items-center gap-4">
             {backendNote && <span>{backendNote}</span>}
             {stats && (
               <span>
@@ -166,15 +232,24 @@ function MainContent() {
 
         <div className="flex-1 relative overflow-hidden flex">
           <Routes>
-            <Route path="/dashboard" element={<DashboardPage incidents={incidents} onSelectIncident={setSelectedIncident} />} />
-            <Route path="/devices" element={<DevicesPage incidents={incidents} onSelectIncident={setSelectedIncident} />} />
-            <Route path="/alerts" element={<AlertsPage incidents={incidents} onSelectIncident={setSelectedIncident} />} />
-            <Route path="/incidents" element={<IncidentsPage incidents={incidents} onSelectIncident={setSelectedIncident} />} />
-            <Route path="/analytics" element={<MapPage incidents={incidents} onSelectIncident={setSelectedIncident} />} />
+            <Route
+              path="/dashboard"
+              element={<DashboardPage incidents={filteredIncidents} onSelectIncident={setSelectedIncident} searchQuery={searchQuery} />}
+            />
+            <Route
+              path="/devices"
+              element={<DevicesPage incidents={filteredIncidents} onSelectIncident={setSelectedIncident} searchQuery={searchQuery} />}
+            />
+            <Route path="/alerts" element={<AlertsPage incidents={filteredIncidents} onSelectIncident={setSelectedIncident} />} />
+            <Route path="/incidents" element={<IncidentsPage incidents={filteredIncidents} onSelectIncident={setSelectedIncident} />} />
+            <Route
+              path="/analytics"
+              element={<MapPage incidents={filteredIncidents} onSelectIncident={setSelectedIncident} searchQuery={searchQuery} />}
+            />
             <Route
               path="/reports"
               element={
-                <div className="h-full w-full overflow-y-auto bg-[#0d0e11] text-white p-8">
+                <div className="h-full w-full overflow-y-auto bg-brand-dark text-white p-8">
                   <div className="max-w-5xl mx-auto">
                     <h2 className="text-3xl font-semibold tracking-tight text-white/90">Operational Reports</h2>
                     <p className="text-white/45 mt-2">Report export and evidence bundles can be added next. This screen is no longer shared with Devices, Alerts, or Help.</p>
@@ -190,7 +265,7 @@ function MainContent() {
                 </div>
               }
             />
-            <Route path="/help" element={<HelpPage incidents={incidents} onSelectIncident={setSelectedIncident} />} />
+            <Route path="/help" element={<HelpPage incidents={filteredIncidents} onSelectIncident={setSelectedIncident} />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>

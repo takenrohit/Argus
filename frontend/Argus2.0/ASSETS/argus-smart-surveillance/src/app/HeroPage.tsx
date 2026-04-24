@@ -15,7 +15,7 @@ export default function HeroPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 1 }}
-      className="relative w-full h-screen overflow-hidden bg-[#0d0e11] flex flex-col items-center justify-center font-sans"
+      className="relative w-full h-screen overflow-hidden bg-brand-dark flex flex-col items-center justify-center font-sans"
     >
       <ParticleBackground />
       

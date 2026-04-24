@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -16,20 +16,104 @@ const createCustomIcon = (color: string) =>
     iconAnchor: [6, 6],
   });
 
-const redIcon = createCustomIcon('#ff4d4d');
-const amberIcon = createCustomIcon('#ff9933');
-const greenIcon = createCustomIcon('#2ecc71');
+const redIcon = createCustomIcon('#35858e');
+const amberIcon = createCustomIcon('#7da78c');
+const greenIcon = createCustomIcon('#c2d099');
+const searchIcon = createCustomIcon('#e6eec9');
+
+const cityCoordinates: Record<string, [number, number]> = {
+  mumbai: [19.076, 72.8777],
+  bombay: [19.076, 72.8777],
+  delhi: [28.6139, 77.209],
+  'new delhi': [28.6139, 77.209],
+  bengaluru: [12.9716, 77.5946],
+  bangalore: [12.9716, 77.5946],
+  chennai: [13.0827, 80.2707],
+  hyderabad: [17.385, 78.4867],
+  pune: [18.5204, 73.8567],
+  kolkata: [22.5726, 88.3639],
+  ahmedabad: [23.0225, 72.5714],
+  jaipur: [26.9124, 75.7873],
+  lucknow: [26.8467, 80.9462],
+  surat: [21.1702, 72.8311],
+  indore: [22.7196, 75.8577],
+};
 
 interface MapComponentProps {
   incidents: Incident[];
   onSelectIncident: (incident: Incident) => void;
   showHeatmap: boolean;
+  searchQuery?: string;
 }
 
-function MapViewport({ incidents }: { incidents: Incident[] }) {
+interface SearchResult {
+  label: string;
+  position: [number, number];
+}
+
+function MapViewport({
+  incidents,
+  searchQuery,
+  onSearchResult,
+}: {
+  incidents: Incident[];
+  searchQuery?: string;
+  onSearchResult: (result: SearchResult | null) => void;
+}) {
   const map = useMap();
 
-  useMemo(() => {
+  useEffect(() => {
+    const query = searchQuery?.trim();
+
+    if (query) {
+      const normalizedQuery = query.toLowerCase();
+      const knownCityEntry = Object.entries(cityCoordinates).find(([key]) => normalizedQuery.includes(key));
+
+      if (knownCityEntry) {
+        map.flyTo(knownCityEntry[1], 11, { duration: 0.8 });
+        onSearchResult({ label: query, position: knownCityEntry[1] });
+        return;
+      }
+
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => {
+        void (async () => {
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/search?format=json&limit=1&addressdetails=1&q=${encodeURIComponent(query)}`,
+              { signal: controller.signal }
+            );
+            if (!response.ok) {
+              return;
+            }
+
+            const data = (await response.json()) as Array<{ lat: string; lon: string; display_name?: string }>;
+            if (!Array.isArray(data) || !data.length) {
+              onSearchResult(null);
+              return;
+            }
+
+            const lat = Number(data[0].lat);
+            const lng = Number(data[0].lon);
+            if (Number.isFinite(lat) && Number.isFinite(lng)) {
+              const position: [number, number] = [lat, lng];
+              map.flyTo(position, 11, { duration: 0.8 });
+              onSearchResult({ label: data[0].display_name || query, position });
+            }
+          } catch {
+            // Keep the current viewport if the geocoder is unavailable.
+          }
+        })();
+      }, 450);
+
+      return () => {
+        window.clearTimeout(timeoutId);
+        controller.abort();
+      };
+    }
+
+    onSearchResult(null);
+
     const valid = incidents.filter(
       (incident) =>
         Number.isFinite(incident.location.lat) &&
@@ -49,12 +133,13 @@ function MapViewport({ incidents }: { incidents: Incident[] }) {
 
     const bounds = L.latLngBounds(valid.map((incident) => [incident.location.lat, incident.location.lng] as [number, number]));
     map.fitBounds(bounds, { padding: [60, 60] });
-  }, [incidents, map]);
+  }, [incidents, map, onSearchResult, searchQuery]);
 
   return null;
 }
 
-export default function MapComponent({ incidents, onSelectIncident, showHeatmap }: MapComponentProps) {
+export default function MapComponent({ incidents, onSelectIncident, showHeatmap, searchQuery = '' }: MapComponentProps) {
+  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const center = useMemo<[number, number]>(() => {
     const firstValid = incidents.find(
       (incident) => !(incident.location.lat === 0 && incident.location.lng === 0)
@@ -69,7 +154,18 @@ export default function MapComponent({ incidents, onSelectIncident, showHeatmap 
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
-        <MapViewport incidents={incidents} />
+        <MapViewport incidents={incidents} searchQuery={searchQuery} onSearchResult={setSearchResult} />
+
+        {searchResult && (
+          <Marker position={searchResult.position} icon={searchIcon}>
+            <Popup className="custom-leaflet-popup">
+              <div className="text-white p-3 bg-brand-surface rounded-xl border border-brand-border shadow-2xl min-w-[220px]">
+                <div className="text-xs uppercase tracking-widest text-brand-blue font-bold mb-2">Search Location</div>
+                <div className="text-[11px] text-white/60 leading-relaxed">{searchResult.label}</div>
+              </div>
+            </Popup>
+          </Marker>
+        )}
 
         {incidents.map((incident) => {
           const icon =
@@ -118,10 +214,10 @@ export default function MapComponent({ incidents, onSelectIncident, showHeatmap 
                   pathOptions={{
                     fillColor:
                       incident.alertLevel === 'CRITICAL'
-                        ? '#ff4d4d'
+                        ? '#35858e'
                         : incident.alertLevel === 'REVIEW'
-                          ? '#ff9933'
-                          : '#2ecc71',
+                          ? '#7da78c'
+                          : '#c2d099',
                     color: 'transparent',
                     fillOpacity: 0.18,
                   }}

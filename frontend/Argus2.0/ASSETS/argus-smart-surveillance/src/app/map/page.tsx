@@ -8,9 +8,10 @@ import { cn } from '../../lib/utils';
 interface MapPageProps {
   incidents: Incident[];
   onSelectIncident: (inc: Incident) => void;
+  searchQuery: string;
 }
 
-export default function MapPage({ incidents, onSelectIncident }: MapPageProps) {
+export default function MapPage({ incidents, onSelectIncident, searchQuery }: MapPageProps) {
   const [showHeatmap, setShowHeatmap] = useState(true);
 
   return (
@@ -56,6 +57,7 @@ export default function MapPage({ incidents, onSelectIncident }: MapPageProps) {
         incidents={incidents} 
         onSelectIncident={onSelectIncident}
         showHeatmap={showHeatmap}
+        searchQuery={searchQuery}
       />
     </motion.div>
   );

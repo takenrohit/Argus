@@ -12,7 +12,7 @@ export default function AlertsPage({ incidents, onSelectIncident }: AlertsPagePr
   const monitor = incidents.filter((incident) => incident.alertLevel === 'MONITOR');
 
   return (
-    <div className="h-full overflow-y-auto p-6 custom-scrollbar bg-[#0d0e11] text-white">
+    <div className="h-full overflow-y-auto p-6 custom-scrollbar bg-brand-dark text-white">
       <div className="max-w-6xl mx-auto space-y-6">
         <div>
           <h2 className="text-2xl font-semibold text-white/90">Alert Console</h2>

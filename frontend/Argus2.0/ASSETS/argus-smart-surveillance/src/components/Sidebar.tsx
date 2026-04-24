@@ -25,7 +25,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   return (
     <aside 
       className={cn(
-        "border-r border-brand-border/50 flex flex-col h-full bg-[#121214] transition-all duration-300 z-50 relative",
+        "border-r border-brand-border/50 flex flex-col h-full bg-brand-dark transition-all duration-300 z-50 relative",
         isExpanded ? "w-64" : "w-20"
       )}
       onMouseEnter={() => setIsExpanded(true)}
