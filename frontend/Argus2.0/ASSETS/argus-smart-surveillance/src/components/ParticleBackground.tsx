@@ -22,7 +22,7 @@ export default function ParticleBackground() {
     if (!ctx) return;
 
     let particles: Particle[] = [];
-    const particleCount = window.innerWidth > 1024 ? 4000 : 1500; // Ultra dense field
+    const particleCount = window.innerWidth > 1024 ? 11200 : 4900; // Ultra dense field
     
     let mouse = { x: -1000, y: -1000, radius: 250 };
 
