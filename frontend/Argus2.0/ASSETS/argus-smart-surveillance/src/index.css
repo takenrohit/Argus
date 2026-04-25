@@ -45,7 +45,7 @@
 .leaflet-control-zoom-in,
 .leaflet-control-zoom-out,
 .leaflet-control-attribution {
-  filter: sepia(0.3) saturate(1.35) hue-rotate(330deg) brightness(0.78) contrast(1.18);
+  filter: sepia(0.2) saturate(1.2) hue-rotate(330deg) brightness(0.95) contrast(1.1);
 }
 
 /* Custom Scrollbar */

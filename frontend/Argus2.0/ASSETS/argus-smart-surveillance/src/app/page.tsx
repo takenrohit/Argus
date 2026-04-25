@@ -157,15 +157,15 @@ export default function DashboardPage({ incidents, cameras = [], onSelectInciden
           searchQuery={searchQuery || 'Bengaluru Electronic City'}
         />
       </div>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_43%_42%,rgba(0,0,0,0.05),rgba(0,0,0,0.72)_78%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/86 via-black/28 to-black/88" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_43%_42%,rgba(0,0,0,0),rgba(0,0,0,0.45)_85%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
 
       <section className="absolute left-10 top-10 z-[700] max-w-xl">
         <p className="text-xs uppercase tracking-[0.32em] text-white/52">Live Sector</p>
         <h1 className="mt-3 text-5xl font-semibold leading-[0.95] tracking-[-0.04em] text-white">
           Argus Monitoring<br />Zone
         </h1>
-        <p className="mt-4 text-sm text-white/42">Using in-memory incident store</p>
+
       </section>
 
       <div className="absolute left-10 top-[172px] z-[760] flex rounded-xl bg-black/55 p-1 shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-md">
